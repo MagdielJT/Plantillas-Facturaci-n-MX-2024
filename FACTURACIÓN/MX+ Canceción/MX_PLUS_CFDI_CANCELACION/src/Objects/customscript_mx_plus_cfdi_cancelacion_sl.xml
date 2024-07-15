@@ -1,0 +1,25 @@
+<suitelet scriptid="customscript_mx_plus_cfdi_cancelacion_sl">
+  <description>Registro del Suitlet</description>
+  <isinactive>F</isinactive>
+  <name>MX+ CFDI CANCELACION SL</name>
+  <notifyadmins>F</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>T</notifyowner>
+  <notifyuser>F</notifyuser>
+  <scriptfile>[/SuiteScripts/MX_Plus/CFDI_CANCELACION/Suitelet/mx_plus_cfdi_cancelacion_sl.js]</scriptfile>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy_mx_plus_cfdi_cancela_des_sl">
+      <allemployees>T</allemployees>
+      <allpartners>F</allpartners>
+      <allroles>T</allroles>
+      <audslctrole></audslctrole>
+      <eventtype></eventtype>
+      <isdeployed>T</isdeployed>
+      <isonline>F</isonline>
+      <loglevel>DEBUG</loglevel>
+      <runasrole>ADMINISTRATOR</runasrole>
+      <status>RELEASED</status>
+      <title>MX+ CFDI CANCELACION SL</title>
+    </scriptdeployment>
+  </scriptdeployments>
+</suitelet>
