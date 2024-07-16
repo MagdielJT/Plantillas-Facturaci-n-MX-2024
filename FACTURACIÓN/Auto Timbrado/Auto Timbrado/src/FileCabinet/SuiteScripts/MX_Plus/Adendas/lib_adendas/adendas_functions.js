@@ -1,11 +1,29 @@
 /**
  * @NApiVersion 2.1
  */
-define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../../Factura de Venta/lib/_mxplus_invoice_functions', 'N/format'],
+define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../../Factura de Venta/lib/_mxplus_invoice_functions', 'N/format','N/config','N/xml'],
     /**
  * @param{log} log
  */
-    (log, file, record, render, search, runtime, invoiceFunctions, format) => {
+    (log, file, record, render, search, runtime, invoiceFunctions, format,config,xml) => {
+        function horaActual() {
+            var respuesta = '';
+            try {
+                var d = new Date();
+                var offset = '-5';
+                var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+                var nd = new Date(utc + (3600000 * offset));
+                var Hours = nd.getHours() < 10 ? '0' + nd.getHours() : nd.getHours();
+                var Minutes = nd.getMinutes() < 10 ? '0' + nd.getMinutes() : nd.getMinutes();
+                var Seconds = nd.getSeconds() < 10 ? '0' + nd.getSeconds() : nd.getSeconds();
+                respuesta = Hours + ':' + Minutes + ':' + Seconds;
+            } catch (error) {
+                log.error({title: 'error horaActual', details: JSON.stringify(error)});
+                respuesta = '00:00:00';
+            }
+            log.audit({title: 'respuesta horaActual', details: JSON.stringify(respuesta)});
+            return respuesta;
+        }
         const getAdenda = (adendaId) => {
             var data_to_return = {
                 success: false,
@@ -221,8 +239,8 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     ArrTaxDetails.push(objTaxDetails);
                 }
                 return ArrTaxDetails;
-            }catch(err){
-            log.error({title:'Error occurred in getTaxDetails',details:err});
+            } catch (err) {
+                log.error({ title: 'Error occurred in getTaxDetails', details: err });
             }
         }
         function getDataSabritas(param_id, param_type) {
@@ -551,7 +569,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     });
                 }
                 let currentAccountID = runtime.accountId;
-                if (currentAccountID.includes('6212323') && data_to_return.idAdenda=='') {
+                if (currentAccountID.includes('6212323') && data_to_return.idAdenda == '') {
                     data_to_return.success = true;
                     data_to_return.idAdenda = 16;
                     data_to_return.idCliente = idCliente;
@@ -571,10 +589,10 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
             }
             try {
                 let adendaId = getAdendaIdFromClient(recordId, recordType);
-                log.audit({title:'adendaId 👻',details:adendaId});
+                log.audit({ title: 'adendaId 👻', details: adendaId });
                 if (adendaId.success == true) {
                     let adenda = getAdenda(adendaId.idAdenda);
-                    log.audit({title:'adenda 🍕',details:adenda});
+                    log.audit({ title: 'adenda 🍕', details: adenda });
                     if (adenda.success == true) {
                         // load client and transaction record
                         let entityRecord = record.load({
@@ -1178,7 +1196,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 data: {
                     serie: '',
                     folio: '',
-                    date:'',
+                    date: '',
                     montoTexto: '',
                     specialInstructioncode: 'ZZZ',
                     orderIdentification: '',
@@ -1239,7 +1257,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     'customer.custentity_efx_fe_add_ched_exgln',
                     'customer.custentity_efx_fe_add_ched_entgln',
                 ]
-                var SUBSIDIARIES = runtime.isFeatureInEffect({feature: "SUBSIDIARIES"});
+                var SUBSIDIARIES = runtime.isFeatureInEffect({ feature: "SUBSIDIARIES" });
                 if (SUBSIDIARIES) {
                     arrayColumn.push('subsidiary');
                 }
@@ -1248,45 +1266,45 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     id: param_id,
                     columns: arrayColumn
                 });
-                log.audit({title: 'LookupField', details: JSON.stringify(LookupField)});
+                log.audit({ title: 'LookupField', details: JSON.stringify(LookupField) });
                 {
                     if (SUBSIDIARIES && LookupField.subsidiary) {
                         var resultSub = record.load({
                             type: search.Type.SUBSIDIARY,
                             id: LookupField.subsidiary[0].value,
                         });
-                        respuesta.data.vatregnumber = resultSub.getValue({fieldId: "federalidnumber"}) || '';// 'NFM0910317L6',
-                        respuesta.data.name = resultSub.getValue({fieldId: "legalname"}) || '';// 'NUTRITION FACT DE MEXICO SA DE CV',
-                        var mainaddressOBJ = resultSub.getSubrecord({fieldId: 'mainaddress'});
-                        respuesta.data.addres1 = mainaddressOBJ.getValue({fieldId: 'custrecord_streetname'}) || '';// 'HACIENDA DEL ROSARIO 195 PRADOS DEL ROSARIO',
-                        respuesta.data.city = mainaddressOBJ.getText({fieldId: 'city'}) || '';// 'AZCAPOTZALCO',
-                        respuesta.data.zipcode = mainaddressOBJ.getValue({fieldId: 'zip'}) || '';// '02410',
-                        respuesta.data.state = mainaddressOBJ.getValue({fieldId: 'state'}) || '';// '02410',
-                        respuesta.data.country = mainaddressOBJ.getValue({fieldId: 'country'}) || '';// '02410',
-                        respuesta.data.numextsub = mainaddressOBJ.getValue({fieldId: 'custrecord_streetnum'}) || '';// '02410',
-                        respuesta.data.coloniasub = mainaddressOBJ.getValue({fieldId: 'custrecord_colonia'}) || '';// '02410',
+                        respuesta.data.vatregnumber = resultSub.getValue({ fieldId: "federalidnumber" }) || '';// 'NFM0910317L6',
+                        respuesta.data.name = resultSub.getValue({ fieldId: "legalname" }) || '';// 'NUTRITION FACT DE MEXICO SA DE CV',
+                        var mainaddressOBJ = resultSub.getSubrecord({ fieldId: 'mainaddress' });
+                        respuesta.data.addres1 = mainaddressOBJ.getValue({ fieldId: 'custrecord_streetname' }) || '';// 'HACIENDA DEL ROSARIO 195 PRADOS DEL ROSARIO',
+                        respuesta.data.city = mainaddressOBJ.getText({ fieldId: 'city' }) || '';// 'AZCAPOTZALCO',
+                        respuesta.data.zipcode = mainaddressOBJ.getValue({ fieldId: 'zip' }) || '';// '02410',
+                        respuesta.data.state = mainaddressOBJ.getValue({ fieldId: 'state' }) || '';// '02410',
+                        respuesta.data.country = mainaddressOBJ.getValue({ fieldId: 'country' }) || '';// '02410',
+                        respuesta.data.numextsub = mainaddressOBJ.getValue({ fieldId: 'custrecord_streetnum' }) || '';// '02410',
+                        respuesta.data.coloniasub = mainaddressOBJ.getValue({ fieldId: 'custrecord_colonia' }) || '';// '02410',
                     } else if (!SUBSIDIARIES) {
                         var configRecObj = config.load({
                             type: config.Type.COMPANY_INFORMATION
                         });
-                        respuesta.data.vatregnumber = configRecObj.getValue({fieldId: 'employerid'}) || '';
-                        respuesta.data.name = configRecObj.getValue({fieldId: 'legalname'}) || '';
-                        var mainaddressOBJ = configRecObj.getSubrecord({fieldId: 'mainaddress'});
+                        respuesta.data.vatregnumber = configRecObj.getValue({ fieldId: 'employerid' }) || '';
+                        respuesta.data.name = configRecObj.getValue({ fieldId: 'legalname' }) || '';
+                        var mainaddressOBJ = configRecObj.getSubrecord({ fieldId: 'mainaddress' });
                         // respuesta.data.addresType = mainaddressOBJ.getText({fieldId: 'custrecord_streettype'}) || '';
-                        respuesta.data.addres1 = mainaddressOBJ.getValue({fieldId: 'custrecord_streetname'}) || '';
-                        respuesta.data.city = mainaddressOBJ.getText({fieldId: 'city'}) || '';
-                        respuesta.data.zipcode = mainaddressOBJ.getValue({fieldId: 'zip'}) || '';
-                        respuesta.data.state = mainaddressOBJ.getValue({fieldId: 'state'}) || '';// '02410',
-                        respuesta.data.country = mainaddressOBJ.getValue({fieldId: 'country'}) || '';// '02410',
-                        respuesta.data.numextsub = mainaddressOBJ.getValue({fieldId: 'custrecord_streetnum'}) || '';// '02410',
-                        respuesta.data.coloniasub = mainaddressOBJ.getValue({fieldId: 'custrecord_colonia'}) || '';// '02410',
+                        respuesta.data.addres1 = mainaddressOBJ.getValue({ fieldId: 'custrecord_streetname' }) || '';
+                        respuesta.data.city = mainaddressOBJ.getText({ fieldId: 'city' }) || '';
+                        respuesta.data.zipcode = mainaddressOBJ.getValue({ fieldId: 'zip' }) || '';
+                        respuesta.data.state = mainaddressOBJ.getValue({ fieldId: 'state' }) || '';// '02410',
+                        respuesta.data.country = mainaddressOBJ.getValue({ fieldId: 'country' }) || '';// '02410',
+                        respuesta.data.numextsub = mainaddressOBJ.getValue({ fieldId: 'custrecord_streetnum' }) || '';// '02410',
+                        respuesta.data.coloniasub = mainaddressOBJ.getValue({ fieldId: 'custrecord_colonia' }) || '';// '02410',
                     }
                 }
                 respuesta.data.serie = LookupField['tranid'] || '';
                 respuesta.data.folio = LookupField['tranid'] || '';
                 var Date = LookupField['trandate'] || '';
                 var formatDate = formatFecha(Date);
-                log.audit({title:'formatDate ☠️',details:formatDate});
+                log.audit({ title: 'formatDate ☠️', details: formatDate });
                 respuesta.data.date = formatDate;
                 // respuesta.data.date = LookupField['trandate'] || '';
       
@@ -1317,16 +1335,16 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 respuesta.data.CodigoPostal_envio = LookupField['shippingaddress.zip'] || '';
                 respuesta.data.Pais_envio = LookupField['shippingaddress.country'] || '';
                 respuesta.data.terminos = LookupField['terms'] || '';
-                try{
-                if(respuesta.data.terminos){
+                try {
+                    if (respuesta.data.terminos) {
                     var terminos_obj = record.load({
                         type: record.Type.TERM,
                         id: respuesta.data.terminos[0].value
                     });
-                    respuesta.data.terminos = terminos_obj.getValue({fieldId:'daysuntilnetdue'});
+                        respuesta.data.terminos = terminos_obj.getValue({ fieldId: 'daysuntilnetdue' });
                 }
-                }catch(error_terms){
-                    respuesta.data.terminos  = '';
+                } catch (error_terms) {
+                    respuesta.data.terminos = '';
                 }
               //   if (LookupField['custbody_efx_fe_add_ched_foc']) {
                   //   var horaMexico = horaActual();
@@ -1335,16 +1353,16 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
               //   }
                 respuesta.data.montoTexto = LookupField['custbody_efx_fe_total_text'] || '';
                 respuesta.data.orderIdentification = LookupField['otherrefnum'] || '';
-                if(LookupField['shippingaddress.custrecord_efx_fe_buyer_gln']){
+                if (LookupField['shippingaddress.custrecord_efx_fe_buyer_gln']) {
                     respuesta.data.id_proveedor = LookupField['shippingaddress.custrecord_efx_fe_buyer_gln'] || '';
-                }else{
+                } else {
                     respuesta.data.id_proveedor = LookupField['customer.custentity_efx_fe_add_ched_exgln'] || '';
                 }
-                if(LookupField['shippingaddress.custrecord_efx_fe_lugar_gln']){
+                if (LookupField['shippingaddress.custrecord_efx_fe_lugar_gln']) {
                     respuesta.data.identificador_chedrahui = LookupField['shippingaddress.custrecord_efx_fe_lugar_gln'] || '';
-                }else if(LookupField['billingaddress.custrecord_efx_fe_lugar_gln']){
+                } else if (LookupField['billingaddress.custrecord_efx_fe_lugar_gln']) {
                     respuesta.data.identificador_chedrahui = LookupField['billingaddress.custrecord_efx_fe_lugar_gln'] || '';
-                }else{
+                } else {
                     respuesta.data.identificador_chedrahui = LookupField['customer.custentity_efx_fe_add_ched_entgln'] || '';
                 }
                 respuesta.data.total = LookupField['total'] || 0;
@@ -1405,10 +1423,10 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     respuesta.succes = true;
                 }
             } catch (error) {
-                log.error({title: 'error getDataChedrahui', details: JSON.stringify(error)});
+                log.error({ title: 'error getDataChedrahui', details: JSON.stringify(error) });
                 respuesta.succes = false;
             }
-            log.audit({title: 'respuesta getDataChedrahui', details: JSON.stringify(respuesta)});
+            log.audit({ title: 'respuesta getDataChedrahui', details: JSON.stringify(respuesta) });
             return respuesta;
         }
         function getXmlChedrahui(param_obj_Chedrahui) {
@@ -1421,7 +1439,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 respuesta.xmlns = ' xsi:schemaLocation="http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv33.xsd" ';
                 respuesta.xmlns += ' xmlns:xs="http://www.w3.org/2001/XMLSchema" ';
                 respuesta.xmlns += ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ';
-                log.audit({title:'respuesta.xmlns',details:respuesta.xmlns});
+                log.audit({ title: 'respuesta.xmlns', details: respuesta.xmlns });
                 var xmlChedrahui = '';
                 xmlChedrahui += '   <cfdi:Addenda>';
                 xmlChedrahui += '       <requestForPayment';
@@ -1429,7 +1447,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 xmlChedrahui += '           contentVersion="1.3.1"';
                 xmlChedrahui += '           documentStructureVersion="AMC7.1"';
                 xmlChedrahui += '           documentStatus="ORIGINAL"';
-                xmlChedrahui += '           DeliveryDate="'+param_obj_Chedrahui.date+'">';
+                xmlChedrahui += '           DeliveryDate="' + param_obj_Chedrahui.date + '">';
                 xmlChedrahui += '           <requestForPaymentIdentification>';
                 xmlChedrahui += '               <entityType>INVOICE</entityType>';
                 xmlChedrahui += '               <uniqueCreatorIdentification>"' + param_obj_Chedrahui.serie + '"</uniqueCreatorIdentification>';
@@ -1452,8 +1470,8 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 xmlChedrahui += '           </DeliveryNote>';*/
                 if (param_obj_Chedrahui.refId && param_obj_Chedrahui.refDate) {
                     xmlChedrahui += '           <DeliveryNote>';
-                    xmlChedrahui += '               <referenceIdentification>' + param_obj_Chedrahui.refId +'</referenceIdentification>';
-                    xmlChedrahui += '               <ReferenceDate>' + param_obj_Chedrahui.refDate +'</ReferenceDate>';
+                    xmlChedrahui += '               <referenceIdentification>' + param_obj_Chedrahui.refId + '</referenceIdentification>';
+                    xmlChedrahui += '               <ReferenceDate>' + param_obj_Chedrahui.refDate + '</ReferenceDate>';
                     xmlChedrahui += '           </DeliveryNote>';
                 }
                 xmlChedrahui += '           <buyer>';
@@ -1471,10 +1489,10 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 xmlChedrahui += '           <shipTo>';
                 xmlChedrahui += '               <gln>' + param_obj_Chedrahui.id_proveedor + '</gln>';
                 xmlChedrahui += '               <nameAndAddress>';
-                xmlChedrahui += '                   <name>'+ param_obj_Chedrahui.Nombre_envio +'</name>';
-                xmlChedrahui += '                   <streetAddressOne>'+ param_obj_Chedrahui.addresType[0].text + ' ' + param_obj_Chedrahui.Calle_envio + ' ' + Number(param_obj_Chedrahui.NumeroExt_envio) +'</streetAddressOne>';
-                xmlChedrahui += '                   <city>'+ param_obj_Chedrahui.Estado_envio +'</city>';
-                xmlChedrahui += '                   <postalCode>'+ param_obj_Chedrahui.CodigoPostal_envio +'</postalCode>';
+                xmlChedrahui += '                   <name>' + param_obj_Chedrahui.Nombre_envio + '</name>';
+                xmlChedrahui += '                   <streetAddressOne>' + param_obj_Chedrahui.addresType[0].text + ' ' + param_obj_Chedrahui.Calle_envio + ' ' + Number(param_obj_Chedrahui.NumeroExt_envio) + '</streetAddressOne>';
+                xmlChedrahui += '                   <city>' + param_obj_Chedrahui.Estado_envio + '</city>';
+                xmlChedrahui += '                   <postalCode>' + param_obj_Chedrahui.CodigoPostal_envio + '</postalCode>';
                 xmlChedrahui += '               </nameAndAddress>';
                 xmlChedrahui += '           </shipTo>';
                 xmlChedrahui += '           <InvoiceCreator>';
@@ -1504,7 +1522,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 xmlChedrahui += '               </netPayment>';
                 xmlChedrahui += '           </paymentTerms>';
                 for (var lineitem in param_obj_Chedrahui.item) {
-                    xmlChedrahui += '           <lineItem type="SimpleInvoiceLineItemType" number="'+ (parseFloat(lineitem)+1) +'">';
+                    xmlChedrahui += '           <lineItem type="SimpleInvoiceLineItemType" number="' + (parseFloat(lineitem) + 1) + '">';
                     xmlChedrahui += '               <tradeItemIdentification>';
                     xmlChedrahui += '                   <gtin>' + param_obj_Chedrahui.item[lineitem].sku + '</gtin>';
                     xmlChedrahui += '               </tradeItemIdentification>';
@@ -1578,10 +1596,10 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 // }
                 respuesta.succes = true;
             } catch (error) {
-                log.error({title: 'error getXmlChedrahui', details: JSON.stringify(error)});
+                log.error({ title: 'error getXmlChedrahui', details: JSON.stringify(error) });
                 respuesta.succes = false;
             }
-            log.audit({title: 'respuesta getXmlChedrahui', details: JSON.stringify(respuesta)});
+            log.audit({ title: 'respuesta getXmlChedrahui', details: JSON.stringify(respuesta) });
             return respuesta;
         }
         function escapeXml(unsafe) {
@@ -1596,7 +1614,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
             });
         }
         function formatFecha(date) {
-            try{
+            try {
                 var objDate = format.parse({
                     value: date,
                     type: format.Type.DATE
@@ -1613,8 +1631,8 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 arrayFecha.push(lugar_dia);
                 var dateFormat = arrayFecha[0] + '-' + arrayFecha[1] + '-' + arrayFecha[2];
                 return dateFormat
-            }catch(err){
-            log.error({title:'Error occurred in formatDate',details:err});
+            } catch (err) {
+                log.error({ title: 'Error occurred in formatDate', details: err });
             }
         }
         const getAdendaContents = (adendaName, adendaFileId, recordObj, entityObj) => {
@@ -1624,7 +1642,69 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 let strContents = ''
                 let content = ''
                 log.debug({ title: 'entra a adendas 🌟🌟', details: 'true' });
-                if (fileObj.size < 10485760) { strContents = fileObj.getContents(); }
+                if (fileObj.size < 10485760) { strContents = fileObj.getContents(); 
+                    var plantilla = render.create();
+                            let resultDirecciones = obtenerObjetoDirecciones(recordObj, entityObj);
+                            log.audit({ title: 'resultDirecciones', details: resultDirecciones });
+                            var obj_direnvst = JSON.stringify(resultDirecciones.shipaddress);
+                            var obj_direnv = JSON.parse(obj_direnvst);
+                            if (obj_direnv["fields"]) {
+                                plantilla.addCustomDataSource({
+                                    alias: 'shipaddress',
+                                    format: render.DataSource.OBJECT,
+                                    data: obj_direnv["fields"]
+                                });
+                            }
+                            var obj_dirbillst = JSON.stringify(resultDirecciones.billaddress);
+                            var obj_dirbill = JSON.parse(obj_dirbillst);
+                            if (obj_dirbill["fields"]) {
+                                plantilla.addCustomDataSource({
+                                    alias: 'billaddress',
+                                    format: render.DataSource.OBJECT,
+                                    data: obj_dirbill["fields"]
+                                });
+                            }
+                            plantilla.addRecord({
+                                templateName: entityObj.type,
+                                record: entityObj,
+                            });
+                            plantilla.addRecord({
+                                templateName: 'transaction',
+                                record: recordObj,
+                            });
+                            // VNA detalle de inventario
+                            if (runtime.accountId.includes('6212323')) {
+                                let obtenerObjs = obtenObjs(recordObj.id, recordObj.type);
+                                log.audit({ title: 'obtenerObjs.obj_detalleinv', details: obtenerObjs.obj_detalleinv });
+                                var obj_detinvst = JSON.stringify(obtenerObjs.obj_detalleinv);
+                                var obj_detinv = JSON.parse(obj_detinvst);
+                                if (obj_detinv) {
+                                    plantilla.addCustomDataSource({
+                                        alias: 'detalleInventario',
+                                        format: render.DataSource.OBJECT,
+                                        data: obtenerObjs.obj_detalleinv
+                                    });
+                                }
+                            }
+                            var SUBSIDIARIES = runtime.isFeatureInEffect({ feature: "SUBSIDIARIES" });
+                            if(SUBSIDIARIES){
+    
+                                if (recordObj.getValue({ fieldId: 'subsidiary' }) !== '' && recordObj.getValue({ fieldId: 'subsidiary' }) !== null && typeof recordObj.getValue({ fieldId: 'subsidiary' }) !== undefined) {
+                                    var subsidiaria = record.load({
+                                        type: record.Type.SUBSIDIARY,
+                                        id: recordObj.getValue({ fieldId: 'subsidiary' })
+                                    });
+                                    plantilla.addRecord({
+                                        templateName: 'subsidiary',
+                                        record: subsidiaria,
+                                    });
+                                }
+                            }
+    
+                            plantilla.templateContent = strContents;
+                            content = plantilla.renderAsString();
+                }else{
+
                 switch (adendaName) {
                     case 'Sabritas':
                         var objReturn = {
@@ -1692,7 +1772,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     case 'VNA':
                         var plantilla = render.create();
                         // recordObjrecord, tipo_transaccion, tipo_transaccion_gbl, tipo_cp, id_transaccion,esAdenda
-                        var result =invoiceFunctions.obtenercustomobject(recordObj, recordObj.type, recordObj.type,'', recordObj.id,true);
+                            var result = invoiceFunctions.obtenercustomobject(recordObj, recordObj.type, recordObj.type, '', recordObj.id, true);
                         log.audit({ title: 'result', details: result });
                         var customJson = {
                             customDataSources: [
@@ -1712,7 +1792,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                             log.audit({ title: 'data', details: JSON.stringify(data) });
                             plantilla.addCustomDataSource({
                                 alias: alias,
-                                format:format,
+                                    format: format,
                                 data: data
                             });
                         }
@@ -1727,6 +1807,102 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                         plantilla.templateContent = strContents;
                         content = plantilla.renderAsString();
                         break
+                        case 'Ofimart':
+                            var plantilla = render.create();
+                            // recordObjrecord, tipo_transaccion, tipo_transaccion_gbl, tipo_cp, id_transaccion,esAdenda
+                            // var lineCount = recordObj.getLineCount({
+                            //     sublistId: 'item',
+                            // });
+                            // let aplicaAdenda=false;
+                            // for(let i=0;i<lineCount.length;i++){
+                            //     var POContent = recordObj.getSublistValue({
+                            //         sublistId: 'item',
+                            //         fieldId: 'custcol_nscs_po',
+                            //         line: i,
+                            //     });
+                            //     log.emergency({title:'POContent ⚡⚡',details:POContent});
+                            //     if(POContent!='' && POContent!= null && typeof POContent!=undefined){
+                            //         aplicaAdenda=true;
+                            //     }
+                            // }
+                            // if(aplicaAdenda==true){
+    
+                            plantilla.addRecord({
+                                templateName: 'transaction',
+                                record: recordObj,
+                            });
+                            plantilla.templateContent = strContents;
+                            content = plantilla.renderAsString();
+                            // }else{
+                            //     content='';
+                            // }
+                            break
+                        case 'CityFresco': {
+                            var objReturn = {
+                                error: [],
+                                xml: '',
+                                schema: '',
+                                obj: {
+                                    succes: false,
+                                },
+                                input: {
+                                    custparam_tranid: recordObj.id,
+                                    custparam_trantype: recordObj.type,
+                                    custparam_mode: adendaName,
+                                }
+                            };
+                            objReturn.obj = getDataCityFresco(recordObj.id, recordObj.type);
+                            if (objReturn.obj.succes) {
+                                xmlAddenda = getXmlCityFresco(objReturn.obj.data);
+                                return xmlAddenda.data
+    
+                            }
+                            break;
+                        }
+                        case 'HEB': {
+                            var objReturn = {
+                                error: [],
+                                xml: '',
+                                schema: '',
+                                obj: {
+                                    succes: false,
+                                },
+                                input: {
+                                    custparam_tranid: recordObj.id,
+                                    custparam_trantype: recordObj.type,
+                                    custparam_mode: adendaName,
+                                }
+                            };
+                            objReturn.obj = getDataHeb(recordObj.id, recordObj.type);
+                            if (objReturn.obj.succes) {
+                                xmlAddenda = getXmlHeb(objReturn.obj.data);
+                                return xmlAddenda.data
+    
+                            }
+                            break;
+                        }
+                        case 'CityFrescoMySuite': {
+                            var objReturn = {
+                                error: [],
+                                xml: '',
+                                schema: '',
+                                obj: {
+                                    succes: false,
+                                },
+                                input: {
+                                    custparam_tranid: recordObj.id,
+                                    custparam_trantype: recordObj.type,
+                                    custparam_mode: adendaName,
+                                }
+                            };
+                            objReturn.obj = getDataComercialCityFresco(recordObj.id, recordObj.type);
+                            if (objReturn.obj.succes) {
+                                xmlAddenda = getXmlComercialCityFresco(objReturn.obj.data);
+                                return xmlAddenda.data
+    
+                            }
+                            break;
+                        }
                     default:
                         var plantilla = render.create();
                         let resultDirecciones = obtenerObjetoDirecciones(recordObj, entityObj);
@@ -1758,7 +1934,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                             record: recordObj,
                         });
                         // VNA detalle de inventario
-                        if(runtime.accountId.includes('6212323')){
+                        if (runtime.accountId.includes('6212323')) {
                             let obtenerObjs = obtenObjs(recordObj.id, recordObj.type);
                             log.audit({ title: 'obtenerObjs.obj_detalleinv', details: obtenerObjs.obj_detalleinv });
                             var obj_detinvst = JSON.stringify(obtenerObjs.obj_detalleinv);
@@ -1771,23 +1947,657 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                                 });
                             }
                         }
-                        if (recordObj.getValue({ fieldId: 'subsidiary' }) !== '' && recordObj.getValue({ fieldId: 'subsidiary' }) !== null && typeof recordObj.getValue({ fieldId: 'subsidiary' }) !== undefined) {
-                            var subsidiaria = record.load({
-                                type: record.Type.SUBSIDIARY,
-                                id: recordObj.getValue({ fieldId: 'subsidiary' })
-                            });
-                            plantilla.addRecord({
-                                templateName: 'subsidiary',
-                                record: subsidiaria,
-                            });
+                        var SUBSIDIARIES = runtime.isFeatureInEffect({ feature: "SUBSIDIARIES" });
+                        if(SUBSIDIARIES){
+                            if (recordObj.getValue({ fieldId: 'subsidiary' }) !== '' && recordObj.getValue({ fieldId: 'subsidiary' }) !== null && typeof recordObj.getValue({ fieldId: 'subsidiary' }) !== undefined) {
+                                var subsidiaria = record.load({
+                                    type: record.Type.SUBSIDIARY,
+                                    id: recordObj.getValue({ fieldId: 'subsidiary' })
+                                });
+                                plantilla.addRecord({
+                                    templateName: 'subsidiary',
+                                    record: subsidiaria,
+                                });
+                            }
                         }
                         plantilla.templateContent = strContents;
                         content = plantilla.renderAsString();
+                    }
                 }
                 return content;
             } catch (err) {
                 log.error({ title: 'Error occurred in getAdendaContents', details: err });
             }
+        }
+        function getDataHeb(param_id, param_type) {
+            var SUBSIDIARIES = runtime.isFeatureInEffect({ feature: "SUBSIDIARIES" });
+            var respuesta = {
+                succes: false,
+                data: {
+                    currencyISOCode: 'MXN',
+                    specialInstruction: {
+                        code: '',
+                        text: '',
+                    },
+                    orderIdentification: {
+                        referenceIdentification: '',
+                        ReferenceDate: '',
+                    },
+                    AdditionalInformation: [
+                        /* {
+                            type: '',
+                            value: '',
+                        } */
+                    ],
+                    DeliveryNote: {
+                        referenceIdentification: '',
+                        ReferenceDate: '',
+                    },
+                    buyer: {
+                        gln: '',
+                        text: '',
+                    },
+                    seller: {
+                        gln: '',
+                        alternatePartyIdentification: '',
+                    },
+                    shipTo: {
+                        gln: '',
+                        streetAddressOne: '',
+                        city: '',
+                        postalCode: '',
+                        gln_envio: '',
+                        streetAddressOne_envio: '',
+                        city_envio: '',
+                        postalCode_envio: '',
+                    },
+                    totalAmount: '',
+                    rateDiscount: '',
+                    specialServicesType: '',
+                    Amount: '',
+                    item: [
+    
+                    ],
+                }
+            };
+            try {
+                var arrayColumn = [
+                    'tranid',
+                    'total',
+                    'trandate',
+                    'exchangerate',
+                    'terms',
+                    'subsidiary',
+                    'entity',
+                    'customer.custentity_efx_heb_proveedor',
+                    'customer.custentity_efx_fe_heb_seller',
+                    'customer.custentity_efx_heb_buyergln',
+                    'customer.custentity_efx_heb_buyerperson',
+                    'otherrefnum',
+                    'custbody_efx_heb_folio_recibo',
+                    'custbody_efx_fe_total_text',
+                    'billingaddress.address1',
+                    'billingaddress.custrecord_efx_fe_heb_shipto',
+                    'billingaddress.city',
+                    'billingaddress.zip',
+                    'billingaddress.addressee',
+                    'billingaddress.custrecord_streetname',
+                    'billingaddress.custrecord_colonia',
+                    'billingaddress.custrecord_village',
+                    'billingaddress.state',
+                    'billingaddress.country',
+                    'shippingaddress.address1',
+                    'shippingaddress.custrecord_efx_fe_heb_shipto',
+                    'shippingaddress.city',
+                    'shippingaddress.zip',
+                    'shippingaddress.addressee',
+                    'shippingaddress.custrecord_streetname',
+                    'shippingaddress.custrecord_colonia',
+                    'shippingaddress.custrecord_village',
+                    'shippingaddress.state',
+                    'shippingaddress.country',
+                    'shippingaddress.custrecord_efx_fe_buyer_gln',
+                    'shippingaddress.custrecord_efx_fe_lugar_gln',
+                ];
+                log.audit({title:'SUBSIDIARIES 📍',details:SUBSIDIARIES });
+                if(SUBSIDIARIES==false){
+                    arrayColumn=arrayColumn.filter((item)=>{return item!='subsidiary'})
+                }
+                log.audit({title:'arrayColumn',details:arrayColumn});
+                var LookupField = search.lookupFields({
+                    type: search.Type.TRANSACTION,
+                    id: param_id,
+                    columns: arrayColumn
+                });
+    
+                log.audit({title: 'LookupField', details: JSON.stringify(LookupField)});
+    
+    
+                respuesta.data.folio = LookupField['tranid'] || '';
+    
+                respuesta.data.specialInstruction.code = 'AAB';
+                respuesta.data.specialInstruction.text = LookupField['custbody_efx_fe_total_text'];
+                //respuesta.data.specialInstruction.text = LookupField['custbody_efx_fe_total_text'] || '';
+    
+    
+                respuesta.data.orderIdentification.referenceIdentification = LookupField['otherrefnum'] || '';
+                var cliente_id = LookupField['entity'] || '';
+    
+                var trandateFormato = fechaSplit(LookupField['trandate'], '/', '-', 0, 1, 2, '');
+    
+                if (LookupField['trandate']) {
+                    respuesta.data.orderIdentification.ReferenceDate = trandateFormato;
+                }
+    
+    
+                respuesta.data.AdditionalInformation.push({
+                    type: 'ON',
+                    value: LookupField['otherrefnum'] || '',
+                });
+                respuesta.data.AdditionalInformation.push({
+                    type: 'IV',
+                    value: LookupField['tranid'] || '',
+                });
+                respuesta.data.AdditionalInformation.push({
+                    type: 'ATZ',
+                    value: LookupField['tranid'] || '',
+                });
+    
+    
+                var sub_calle = '';
+                var sub_vat = '';
+                if(SUBSIDIARIES){
+                    var arrayColumn_sub = [
+                        'taxidnum',
+                        'address.custrecord_streetname',
+                        'address.addressee',
+                        'address.city',
+                        'address.state',
+                        'address.country',
+                        'address.zip',
+                    ];
+                    var subsidiary_id = LookupField['subsidiary'];
+                    var LookupField_sub = search.lookupFields({
+                        type: search.Type.SUBSIDIARY,
+                        id: subsidiary_id[0].value,
+                        columns: arrayColumn_sub
+                    });
+    
+                    respuesta.data.seller.calle =  LookupField_sub['address.custrecord_streetname'] || '';
+                    respuesta.data.seller.name =  LookupField_sub['address.addressee'] || '';
+                    respuesta.data.seller.city =  LookupField_sub['address.city'] || '';
+                    respuesta.data.seller.state =  LookupField_sub['address.state'] || '';
+                    respuesta.data.seller.country =  LookupField_sub['address.country'][0].text || '';
+                    respuesta.data.seller.zip =  LookupField_sub['address.zip'] || '';
+                    respuesta.data.seller.vat =  LookupField_sub['taxidnum'] || '';
+    
+                }else{
+    
+                }
+    
+    
+    
+                respuesta.data.DeliveryNote.referenceIdentification = LookupField['custbody_efx_heb_folio_recibo'] || '';
+                respuesta.data.DeliveryNote.ReferenceDate = trandateFormato;
+    
+                if(LookupField['shippingaddress.custrecord_efx_fe_buyer_gln']){
+                    respuesta.data.buyer.gln = LookupField['shippingaddress.custrecord_efx_fe_buyer_gln'] || '';
+                }else{
+                    respuesta.data.buyer.gln = LookupField['customer.custentity_efx_heb_buyergln'] || '';
+                }
+    
+                respuesta.data.buyer.text = '99';
+                respuesta.data.buyer.buyer = LookupField['customer.custentity_efx_heb_buyerperson'] || '';
+    
+                respuesta.data.seller.gln =  LookupField['customer.custentity_efx_fe_heb_seller'] || '';
+                respuesta.data.seller.alternatePartyIdentification = LookupField['customer.custentity_efx_heb_proveedor'] || '';
+    
+    
+                respuesta.data.shipTo.gln = LookupField['billingaddress.custrecord_efx_fe_heb_shipto'];
+                log.audit({title:"LookupField['billingaddress.custrecord_efx_fe_heb_shipto']",details:LookupField['billingaddress.custrecord_efx_fe_heb_shipto']});
+                respuesta.data.shipTo.streetAddressOne = LookupField['billingaddress.custrecord_streetname'];
+                respuesta.data.shipTo.colonia = LookupField['billingaddress.custrecord_colonia'];
+                respuesta.data.shipTo.municipio = LookupField['billingaddress.custrecord_village'];
+                respuesta.data.shipTo.estado = LookupField['billingaddress.state'];
+                respuesta.data.shipTo.pais = LookupField['billingaddress.country'];
+                respuesta.data.shipTo.city = LookupField['billingaddress.city'];
+                respuesta.data.shipTo.postalCode = LookupField['billingaddress.zip'];
+                respuesta.data.shipTo.nombre_dir = LookupField['billingaddress.addressee'];
+    
+                respuesta.data.shipTo.gln_envio = LookupField['shippingaddress.custrecord_efx_fe_heb_shipto'];
+                log.audit({title:"LookupField['shippingaddress.custrecord_efx_fe_heb_shipto']",details:LookupField['shippingaddress.custrecord_efx_fe_heb_shipto']});
+                respuesta.data.shipTo.streetAddressOne_envio = LookupField['shippingaddress.custrecord_streetname'];
+                respuesta.data.shipTo.colonia_envio = LookupField['shippingaddress.custrecord_colonia'];
+                respuesta.data.shipTo.municipio_envio = LookupField['shippingaddress.custrecord_village'];
+                respuesta.data.shipTo.estado_envio = LookupField['shippingaddress.state'];
+                respuesta.data.shipTo.pais_envio = LookupField['shippingaddress.country'];
+                respuesta.data.shipTo.city_envio = LookupField['shippingaddress.city'];
+                respuesta.data.shipTo.postalCode_envio = LookupField['shippingaddress.zip'];
+                respuesta.data.shipTo.nombre_dir_envio = LookupField['shippingaddress.addressee'];//addressee
+    
+                respuesta.data.totalAmount = LookupField['total'];
+                var total_transaccion = LookupField['total'];
+    
+                respuesta.data.specialServicesType = 'AJ';
+                respuesta.data.Amount = '0.0';
+                respuesta.data.exhrate = LookupField['exchangerate'];
+                respuesta.data.terminos = LookupField['terms'];
+                log.audit({title: 'respuesta.data.terminos', details: JSON.stringify(respuesta.data.terminos)});
+                log.audit({title: 'respuesta.data.terminos', details: JSON.stringify(respuesta.data.terminos[0].value)});
+                try{
+                if(respuesta.data.terminos){
+                    var terminos_obj = record.load({
+                        type: record.Type.TERM,
+                        id: respuesta.data.terminos[0].value
+                    });
+                    respuesta.data.terminos = terminos_obj.getValue({fieldId:'daysuntilnetdue'});
+                }
+                }catch(error_terms){
+                    respuesta.data.terminos  = '';
+                }
+    
+    
+                log.audit({title: 'respuesta.data.terminos', details: JSON.stringify(respuesta.data.terminos)});
+    
+                var objParametro = {
+                    id: param_id,
+                    type: param_type,
+                    sublist: 'item',
+                    bodyFieldValue: [],
+                    bodyFieldText: [],
+                    lineField: [
+                        'itemtype',
+                        'item',
+                        'itemTEXT',
+                        'description',
+                        'quantity',
+                        'rate',
+                        'custcol_efx_fe_upc_code',
+                        'amount',
+                        'tax1amt',
+                        'grossamt',
+                    ],
+                };
+    
+                var transactionField = getTransactionField(objParametro);
+                if (transactionField.succes) {
+                    var array_items = [];
+                    var descuento_total_lineas = 0;
+                    for (var ir in transactionField.data.lineField) {
+                        //buscar descuentos
+                        var descuento_linea = 0;
+                        var linea_disc = parseInt(ir)+1;
+                        var tamano_linefield = Object.keys(transactionField.data.lineField).length;
+                        log.audit({title:'linea_disc',details: linea_disc});
+                        log.audit({title:'tamano_linefield',details: tamano_linefield});
+                        if(linea_disc<tamano_linefield){
+                            if(transactionField.data.lineField[linea_disc].itemtype == 'Discount'){
+                                descuento_linea = transactionField.data.lineField[linea_disc].amount;
+                                if(descuento_linea<0){
+                                    descuento_linea = descuento_linea* (-1);
+                                }
+                            }
+                        }
+                        //fin de buscar descuentos
+    
+                        if (
+                            transactionField.data.lineField[ir].itemtype == 'InvtPart' ||
+                            transactionField.data.lineField[ir].itemtype == 'Service' ||
+                            transactionField.data.lineField[ir].itemtype == 'Kit' ||
+                            transactionField.data.lineField[ir].itemtype == 'NonInvtPart' ||
+                            transactionField.data.lineField[ir].itemtype == 'Assembly' ||
+                            transactionField.data.lineField[ir].itemtype == 'Markup'
+                        ) {
+    
+                            var rec_transaction = record.load({
+                                type: param_type,
+                                id: param_id,
+                                isDynamic: true,
+                            });
+    
+                            var json_col = rec_transaction.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_efx_fe_tax_json',
+                                line: ir
+                            });
+                            var json_tax_col = JSON.parse(json_col);
+    
+                            var quantity = transactionField.data.lineField[ir].quantity || 0;
+                            var quantityType = (parseFloat(quantity)).toFixed(3) || 0;
+                            descuento_total_lineas = descuento_total_lineas+descuento_linea;
+                            array_items.push(transactionField.data.lineField[ir].item || '');
+                            respuesta.data.item.push({
+                                item: transactionField.data.lineField[ir].item || '',
+                                num_p_cliente : '',
+                                sku: transactionField.data.lineField[ir].custcol_efx_fe_upc_code || '',
+                                name: transactionField.data.lineField[ir].description || '',
+                                unitOfMeasure: 'CAJ',
+                                rate: (transactionField.data.lineField[ir].rate) || '',
+                                amount: transactionField.data.lineField[ir].amount || '',
+                                grossamt: transactionField.data.lineField[ir].grossamt || '',
+                                quantity: quantityType,
+                                // Amount: transactionField.data.lineField[ir].amount || '',
+                                iva_rate:(json_tax_col.iva.rate).toFixed(4),
+                                iva_importe:(json_tax_col.iva.importe),
+                                ieps_rate: (json_tax_col.ieps.rate).toFixed(4),
+                                ieps_importe: (json_tax_col.ieps.importe),
+                                discount: descuento_linea,
+    
+                                //discount: 0,
+                                taxTypeDescription: 'VAT',
+                                taxPercentage: '0.0000',
+                                taxAmount: '0.0000',
+    
+    
+                            });
+    
+                        }
+                    }
+                    var descuento_rate = 0;
+                    log.audit({title:'transactionField.data.bodyFieldValue.discounttotal',details:transactionField.data.bodyFieldValue.discounttotal});
+                    log.audit({title:'descuento_total_lineas',details:descuento_total_lineas});
+                    if(transactionField.data.bodyFieldValue.discounttotal){
+                        if(total_transaccion=='.00'){
+                            total_transaccion = 0;
+                        }
+                        if(total_transaccion==0){
+                            descuento_rate = 100;
+                        }else{
+                            descuento_total_lineas = parseFloat(transactionField.data.bodyFieldValue.discounttotal);
+                            respuesta.data.descuentototal =  transactionField.data.bodyFieldValue.discounttotal;
+                            descuento_rate = (descuento_total_lineas*100)/parseFloat(total_transaccion);
+                        }
+    
+                    }else{
+                        if(total_transaccion=='.00'){
+                            total_transaccion = 0;
+                        }
+                        if(total_transaccion==0){
+                            descuento_rate = 100;
+                        }else{
+                            respuesta.data.descuentototal = descuento_total_lineas.toFixed(2);
+                            descuento_rate = (parseFloat(descuento_total_lineas)*100)/parseFloat(total_transaccion);
+                            log.audit({title:'descuento_rate',details:descuento_rate});
+                        }
+    
+                    }
+                    respuesta.data.rateDiscount = descuento_rate.toFixed(2);
+                    log.audit({title:'respuesta.data.rateDiscount',details:respuesta.data.rateDiscount});
+                    try {
+                        log.audit({title:'array_items',details: array_items});
+                        log.audit({title:'cliente_id',details: cliente_id});
+                        var search_num_client = search.create({
+                            type: 'customrecord_scm_customerpartnumber',
+                            filters: [
+                                ['isinactive', search.Operator.IS, 'F']
+                                , 'and',
+                                ['custrecord_scm_cpn_item', search.Operator.ANYOF, array_items]
+                                , 'and',
+                                ['custrecord_scm_cpn_customer', search.Operator.IS, cliente_id[0].value]
+                            ],
+                            columns: [
+                                search.createColumn({name: 'name'}),
+                                search.createColumn({name: 'custrecord_scm_cpn_item'}),
+                                search.createColumn({name: 'custrecord_scm_cpn_customer'}),
+    
+                            ]
+                        });
+    
+                        var ejecutar = search_num_client.run();
+                        var resultado = ejecutar.getRange(0, 100);
+                        log.audit({title:'resultado.length',details: resultado.length});
+                        for (var itemLine in respuesta.data.item) {
+                            for (var x = 0; x < resultado.length; x++) {
+                                var articulo_cliente = resultado[x].getValue({name: 'custrecord_scm_cpn_item'}) || '';
+                                if(articulo_cliente == respuesta.data.item[itemLine].item){
+                                    respuesta.data.item[itemLine].num_p_cliente = resultado[x].getValue({name: 'name'}) || '';
+                                }
+                            }
+                        }
+                    }catch(error_buscar){
+                        log.audit({title:'error_buscar_num_cliente',details: error_buscar})
+                    }
+                    respuesta.succes = true;
+                }
+            } catch (error) {
+                log.error({title: 'error getDataHeb', details: JSON.stringify(error)});
+                respuesta.succes = false;
+            }
+            log.audit({title: 'respuesta getDataHeb', details: JSON.stringify(respuesta)});
+            return respuesta;
+        }
+    
+        function getXmlHeb(param_obj_Heb,HEBamece) {
+            var respuesta = {
+                succes: false,
+                data: '',
+                xmlns: '',
+            };
+            try {
+    
+    
+                respuesta.xmlns = ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ';
+                respuesta.xmlns += ' xsi:schemaLocation="http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv33.xsd ';
+                respuesta.xmlns += ' http://www.sat.gob.mx/detallista http://www.sat.gob.mx/sitio_internet/cfd/detallista/detallista.xsd ';
+                respuesta.xmlns += '"';
+    
+    
+                var xmlHeb = '';
+    
+    
+                xmlHeb += '    <detallista:detallista';
+                xmlHeb += '        contentVersion="1.3.1"';
+                xmlHeb += '        documentStatus="ORIGINAL"';
+                xmlHeb += '        documentStructureVersion="AMC8.1"';
+                xmlHeb += '        type="SimpleInvoiceType"';
+                xmlHeb += '        xmlns:detallista="http://www.sat.gob.mx/detallista">';
+    
+    
+                xmlHeb += '     <detallista:requestForPaymentIdentification> ';
+                xmlHeb += '         <detallista:entityType>INVOICE</detallista:entityType> ';
+                xmlHeb += '     </detallista:requestForPaymentIdentification> ';
+    
+                xmlHeb += '     <detallista:specialInstruction code="' + param_obj_Heb.specialInstruction.code + '"> ';
+                xmlHeb += '         <detallista:text>' + param_obj_Heb.specialInstruction.text + '</detallista:text> ';
+                xmlHeb += '     </detallista:specialInstruction> ';
+    
+                xmlHeb += '     <detallista:orderIdentification> ';
+                xmlHeb += '         <detallista:referenceIdentification type="ON">' + param_obj_Heb.orderIdentification.referenceIdentification + '</detallista:referenceIdentification> ';
+                xmlHeb += '         <detallista:ReferenceDate>' + param_obj_Heb.orderIdentification.ReferenceDate + '</detallista:ReferenceDate> ';
+                xmlHeb += '     </detallista:orderIdentification> ';
+    
+                xmlHeb += '     <detallista:AdditionalInformation> ';
+                for (var infoi in param_obj_Heb.AdditionalInformation) {
+                    xmlHeb += '         <detallista:referenceIdentification type="' + param_obj_Heb.AdditionalInformation[infoi].type + '">' + param_obj_Heb.AdditionalInformation[infoi].value + '</detallista:referenceIdentification> ';
+                }
+                xmlHeb += '     </detallista:AdditionalInformation> ';
+    
+                if(param_obj_Heb.DeliveryNote.referenceIdentification){
+                    xmlHeb += '     <detallista:DeliveryNote> ';
+                    xmlHeb += '         <detallista:referenceIdentification>' + param_obj_Heb.DeliveryNote.referenceIdentification + '</detallista:referenceIdentification> ';
+                    xmlHeb += '         <detallista:ReferenceDate>' + param_obj_Heb.DeliveryNote.ReferenceDate + '</detallista:ReferenceDate> ';
+                    xmlHeb += '     </detallista:DeliveryNote> ';
+                }
+    
+                xmlHeb += '     <detallista:buyer> ';
+                xmlHeb += '         <detallista:gln>' + param_obj_Heb.buyer.gln + '</detallista:gln> ';
+                xmlHeb += '         <detallista:contactInformation> ';
+                xmlHeb += '             <detallista:personOrDepartmentName> ';
+                xmlHeb += '                 <detallista:text>' + param_obj_Heb.buyer.text + '</detallista:text> ';
+                xmlHeb += '             </detallista:personOrDepartmentName> ';
+                xmlHeb += '         </detallista:contactInformation> ';
+                xmlHeb += '     </detallista:buyer> ';
+    
+                xmlHeb += '     <detallista:seller> ';
+                xmlHeb += '         <detallista:gln>' + param_obj_Heb.seller.gln + '</detallista:gln> ';
+                xmlHeb += '         <detallista:alternatePartyIdentification ';
+                xmlHeb += '             type="SELLER_ASSIGNED_IDENTIFIER_FOR_A_PARTY">' + param_obj_Heb.seller.alternatePartyIdentification + '</detallista:alternatePartyIdentification> ';
+                xmlHeb += '     </detallista:seller> ';
+    
+                xmlHeb += '     <detallista:shipTo> ';
+                if(param_obj_Heb.shipTo.gln_envio){
+                    xmlHeb += '         <detallista:gln>' + param_obj_Heb.shipTo.gln_envio + '</detallista:gln> ';
+                }else{
+                    xmlHeb += '         <detallista:gln>' + param_obj_Heb.shipTo.gln + '</detallista:gln> ';
+                }
+                xmlHeb += '         <detallista:nameAndAddress> ';
+                if(param_obj_Heb.shipTo.nombre_dir_envio){
+                    xmlHeb += '             <detallista:name>' + param_obj_Heb.shipTo.nombre_dir_envio + '</detallista:name> ';
+                }else{
+                    xmlHeb += '             <detallista:name>' + param_obj_Heb.shipTo.nombre_dir + '</detallista:name> ';
+                }
+    
+                if(param_obj_Heb.shipTo.streetAddressOne_envio){
+                    xmlHeb += '             <detallista:streetAddressOne>' + param_obj_Heb.shipTo.streetAddressOne_envio + '</detallista:streetAddressOne> ';
+                }else{
+                    xmlHeb += '             <detallista:streetAddressOne>' + param_obj_Heb.shipTo.streetAddressOne + '</detallista:streetAddressOne> ';
+                }
+    
+                if(param_obj_Heb.shipTo.city_envio){
+                    xmlHeb += '             <detallista:city>' + param_obj_Heb.shipTo.city_envio + '</detallista:city> ';
+                }else{
+                    xmlHeb += '             <detallista:city>' + param_obj_Heb.shipTo.city + '</detallista:city> ';
+                }
+                if(param_obj_Heb.shipTo.postalCode_envio){
+                    xmlHeb += '             <detallista:postalCode>' + param_obj_Heb.shipTo.postalCode_envio + '</detallista:postalCode> ';
+                }else{
+                    xmlHeb += '             <detallista:postalCode>' + param_obj_Heb.shipTo.postalCode + '</detallista:postalCode> ';
+                }
+    
+                xmlHeb += '         </detallista:nameAndAddress> ';
+                xmlHeb += '     </detallista:shipTo> ';
+    
+                xmlHeb += '     <detallista:currency currencyISOCode="' + param_obj_Heb.currencyISOCode + '"> ';
+                xmlHeb += '         <detallista:currencyFunction>BILLING_CURRENCY</detallista:currencyFunction> ';
+                xmlHeb += '         <detallista:rateOfChange>' + param_obj_Heb.exhrate + '</detallista:rateOfChange> ';
+                xmlHeb += '     </detallista:currency> ';
+    
+                // xmlHeb += '     <detallista:InvoiceCreator> ';
+                // xmlHeb += '     <detallista:gln>' + param_obj_Heb.seller.gln + '</detallista:gln> ';
+                // xmlHeb += '     <detallista:alternatePartyIdentification type="VA">' + param_obj_Heb.seller.vat + '</detallista:alternatePartyIdentification> ';
+                // xmlHeb += '     <detallista:nameAndAddress><detallista:name>' + param_obj_Heb.seller.name + '</detallista:name> ';
+                // xmlHeb += '     <detallista:streetAddressOne>' + param_obj_Heb.seller.calle + '</detallista:streetAddressOne> ';
+                // xmlHeb += '     <detallista:city>' + param_obj_Heb.seller.city + '</detallista:city> ';
+                // xmlHeb += '     <detallista:postalCode>' + param_obj_Heb.seller.zip + '</detallista:postalCode></detallista:nameAndAddress> ';
+                // xmlHeb += '     </detallista:InvoiceCreator> ';
+    
+    
+                xmlHeb += '     <detallista:paymentTerms ';
+                xmlHeb += '         paymentTermsEvent="DATE_OF_INVOICE" ';
+                xmlHeb += '         PaymentTermsRelationTime="REFERENCE_AFTER"> ';
+                xmlHeb += '         <detallista:netPayment netPaymentTermsType="BASIC_NET"> ';
+                xmlHeb += '             <detallista:paymentTimePeriod> ';
+                xmlHeb += '                 <detallista:timePeriodDue timePeriod="DAYS"> ';
+                if(param_obj_Heb.terminos){
+                    xmlHeb += '                     <detallista:value>' + param_obj_Heb.terminos + '</detallista:value> ';
+                }else {
+                    xmlHeb += '                     <detallista:value></detallista:value> ';
+                }
+    
+                xmlHeb += '                 </detallista:timePeriodDue> ';
+                xmlHeb += '             </detallista:paymentTimePeriod> ';
+                xmlHeb += '         </detallista:netPayment> ';
+                xmlHeb += '         <detallista:discountPayment discountType="ALLOWANCE_BY_PAYMENT_ON_TIME"> ';
+                xmlHeb += '         <detallista:percentage>' + param_obj_Heb.rateDiscount + '</detallista:percentage></detallista:discountPayment> ';
+                xmlHeb += '     </detallista:paymentTerms> ';
+    
+    
+                xmlHeb += '     <detallista:allowanceCharge  allowanceChargeType="CHARGE_GLOBAL" settlementType="OFF_INVOICE" sequenceNumber="TX"> ';
+                xmlHeb += '     <detallista:specialServicesType>TX</detallista:specialServicesType> ';
+                xmlHeb += '     <detallista:monetaryAmountOrPercentage> ';
+                xmlHeb += '     <detallista:rate base="INVOICE_VALUE"><detallista:percentage>0.00</detallista:percentage></detallista:rate> ';
+                xmlHeb += '     </detallista:monetaryAmountOrPercentage></detallista:allowanceCharge> ';
+    
+                var lineItem = 0;
+                for (var itemLine in param_obj_Heb.item) {
+                    lineItem++;
+                    xmlHeb += '         <detallista:lineItem type="SimpleInvoiceLineItemType" number="' + lineItem + '"> ';
+                    xmlHeb += '             <detallista:tradeItemIdentification> ';
+                    xmlHeb += '                 <detallista:gtin>' + param_obj_Heb.item[itemLine].sku + '</detallista:gtin> ';
+                    xmlHeb += '             </detallista:tradeItemIdentification> ';
+                    if(param_obj_Heb.item[itemLine].num_p_cliente){
+                        xmlHeb += '             <detallista:alternateTradeItemIdentification type="BUYER_ASSIGNED">' + param_obj_Heb.item[itemLine].num_p_cliente + '</detallista:alternateTradeItemIdentification> ';
+                    }else{
+                        xmlHeb += '             <detallista:alternateTradeItemIdentification type="BUYER_ASSIGNED">' + param_obj_Heb.item[itemLine].sku + '</detallista:alternateTradeItemIdentification> ';
+                    }
+                    xmlHeb += '             <detallista:tradeItemDescriptionInformation language="ES"> ';
+                    xmlHeb += '                 <detallista:longText>' + (xml.escape({xmlText: param_obj_Heb.item[itemLine].name})).substr(0,34) + '</detallista:longText> ';
+                    xmlHeb += '             </detallista:tradeItemDescriptionInformation> ';
+                    xmlHeb += '             <detallista:invoicedQuantity unitOfMeasure="' + param_obj_Heb.item[itemLine].unitOfMeasure + '">' + param_obj_Heb.item[itemLine].quantity + '</detallista:invoicedQuantity> ';
+                    xmlHeb += '             <detallista:aditionalQuantity QuantityType="NUM_CONSUMER_UNITS">' + param_obj_Heb.item[itemLine].quantity + '</detallista:aditionalQuantity> ';
+                    xmlHeb += '             <detallista:grossPrice> ';
+                    xmlHeb += '                 <detallista:Amount>' + param_obj_Heb.item[itemLine].grossamt + '</detallista:Amount> ';
+                    xmlHeb += '             </detallista:grossPrice> ';
+                    xmlHeb += '             <detallista:netPrice> ';
+                    xmlHeb += '                 <detallista:Amount>' + param_obj_Heb.item[itemLine].rate + '</detallista:Amount> ';
+                    xmlHeb += '             </detallista:netPrice> ';
+    
+                    xmlHeb += '             <detallista:AdditionalInformation> ';
+                    xmlHeb += '             <detallista:referenceIdentification type="ON">' + param_obj_Heb.orderIdentification.referenceIdentification + '</detallista:referenceIdentification></detallista:AdditionalInformation> ';
+                    xmlHeb += '             <detallista:LogisticUnits> ';
+                    xmlHeb += '             <detallista:serialShippingContainerCode type="SRV">' + param_obj_Heb.item[itemLine].sku + '</detallista:serialShippingContainerCode> ';
+                    xmlHeb += '             </detallista:LogisticUnits> ';
+    
+                    xmlHeb += '             <detallista:palletInformation> ';
+                    xmlHeb += '                 <detallista:description type="BOX">CAJA</detallista:description> ';
+                    xmlHeb += '                 <detallista:palletQuantity>' + param_obj_Heb.item[itemLine].quantity + '</detallista:palletQuantity> ';
+                    xmlHeb += '                 <detallista:transport> ';
+                    xmlHeb += '                     <detallista:methodOfPayment>PREPAID_BY_SELLER</detallista:methodOfPayment> ';
+                    xmlHeb += '                 </detallista:transport> ';
+                    xmlHeb += '             </detallista:palletInformation> ';
+    
+                    xmlHeb += '             <detallista:allowanceCharge settlementType="OFF_INVOICE" allowanceChargeType="CHARGE_GLOBAL"> ';
+                    xmlHeb += '             <detallista:specialServicesType>ZZZ</detallista:specialServicesType> ';
+                    xmlHeb += '             <detallista:monetaryAmountOrPercentage><detallista:percentagePerUnit>0</detallista:percentagePerUnit> ';
+    //                xmlHeb += '             <detallista:ratePerUnit><detallista:amountPerUnit>' + parseFloat(param_obj_Heb.item[itemLine].rate).toFixed(2) + '</detallista:amountPerUnit> ';
+                    xmlHeb += '             <detallista:ratePerUnit><detallista:amountPerUnit>' + 0.00 + '</detallista:amountPerUnit> ';
+                    xmlHeb += '             </detallista:ratePerUnit></detallista:monetaryAmountOrPercentage></detallista:allowanceCharge> ';
+    
+    
+                    xmlHeb += '             <detallista:tradeItemTaxInformation> ';
+                    xmlHeb += '                 <detallista:taxTypeDescription>' + param_obj_Heb.item[itemLine].taxTypeDescription + '</detallista:taxTypeDescription> ';
+                    xmlHeb += '                 <detallista:tradeItemTaxAmount> ';
+                    xmlHeb += '                     <detallista:taxPercentage>' + param_obj_Heb.item[itemLine].iva_rate + '</detallista:taxPercentage> ';
+                    xmlHeb += '                     <detallista:taxAmount>' + param_obj_Heb.item[itemLine].iva_importe + '</detallista:taxAmount> ';
+                    xmlHeb += '                 </detallista:tradeItemTaxAmount> ';
+                    xmlHeb += '                 <detallista:taxCategory>TRANSFERIDO</detallista:taxCategory> ';
+                    xmlHeb += '             </detallista:tradeItemTaxInformation> ';
+                    var amount_discount = param_obj_Heb.item[itemLine].Amount - param_obj_Heb.item[itemLine].discount;
+                    xmlHeb += '             <detallista:totalLineAmount> ';
+                    xmlHeb += '                 <detallista:grossAmount> ';
+                    xmlHeb += '                     <detallista:Amount>' + param_obj_Heb.item[itemLine].grossamt + '</detallista:Amount> ';
+                    xmlHeb += '                 </detallista:grossAmount> ';
+                    xmlHeb += '                 <detallista:netAmount>';
+                    xmlHeb += '                     <detallista:Amount>' + param_obj_Heb.item[itemLine].amount + '</detallista:Amount> ';
+                    xmlHeb += '                 </detallista:netAmount> ';
+                    xmlHeb += '             </detallista:totalLineAmount> ';
+                    xmlHeb += '         </detallista:lineItem> ';
+                }
+    
+                xmlHeb += '     <detallista:totalAmount> ';
+                xmlHeb += '         <detallista:Amount>' + param_obj_Heb.totalAmount + '</detallista:Amount> ';
+                xmlHeb += '     </detallista:totalAmount> ';
+    
+                xmlHeb += '     <detallista:TotalAllowanceCharge allowanceOrChargeType="CHARGE"> ';
+                xmlHeb += '         <detallista:specialServicesType>' + param_obj_Heb.specialServicesType + '</detallista:specialServicesType> ';
+                xmlHeb += '         <detallista:Amount>' + param_obj_Heb.Amount + '</detallista:Amount> ';
+                xmlHeb += '     </detallista:TotalAllowanceCharge> ';
+                xmlHeb += ' </detallista:detallista> ';
+    
+    
+                if(HEBamece){
+                    respuesta.data = JSON.stringify(param_obj_Heb);
+                }else{
+                    respuesta.data = xmlHeb;
+                }
+                respuesta.succes = true;
+    
+            } catch (error) {
+                log.error({title: 'error getXmlHeb', details: JSON.stringify(error)});
+                respuesta.succes = false;
+            }
+            log.audit({title: 'respuesta getXmlHeb', details: JSON.stringify(respuesta)});
+            return respuesta;
         }
         function obtenObjs(tranid, trantype) {
             var SUBSIDIARIES = runtime.isFeatureInEffect({ feature: "SUBSIDIARIES" });
@@ -2052,6 +2862,1183 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 data_to_return.msg = 'Ocurrió un error al crear el archivo de la adenda:' + err
             }
             return data_to_return;
+        }
+        function getDataCityFresco(param_id, param_type) {
+            var respuesta = {
+                succes: false,
+                data: {
+                    serie: '',
+                    folio: '',
+                    DeliveryDate: '',
+                    ReferenceDate: '',
+                    orderIdentificationreferenceIdentification: '',
+                    specialInstruction: [],
+                    buyergln: '',
+                    sellergln: '',
+                    personOrDepartmentName: '',
+                    alternatePartyIdentification: '',
+                    glnShipTo: '',
+
+                    nameShipTo: '',
+                    streetAddressOneShipTo: '',
+                    cityShipTo: '',
+                    postalCodeShipTo: '',
+
+                    glnInvoiceCreator: '',
+
+                    alternatePartyIdentificationInvoiceCreator: '',
+                    nameInvoiceCreator: '',
+                    streetAddressOneInvoiceCreator: '',
+                    cityInvoiceCreator: '',
+                    postalCodeInvoiceCreator: '',
+
+                    item: [],
+
+                    tax: [],
+                    totalAmount: '',
+                    descuentototal: 0,
+                    baseAmount: '',
+                    payableAmount: '',
+
+                    currencyISOCode: 'MXN',
+                    rateOfChange: '1',
+                    monetaryAmountOrPercentage: '0.00',
+
+                }
+            };
+
+            var arrayColumn = [
+                'trandate',
+                'custbody_efx_cf_fechaordencompra',
+                'custbody_efx_fe_tax_json',
+                'otherrefnum',
+                'custbody_efx_fe_fecha_recibo',
+                'tranid',
+                'total',
+                'terms',
+
+                'customer.custentity_efx_cf_buyerperson',
+                'customer.custentity_efx_cf_buyergln',
+                'customer.custentity_efx_cf_idproveedor',
+                'customer.custentity_efx_cf_sellergln',
+                //'customer.custentity_efx_cf_tradeidentification',
+
+                'custbody_efx_fe_total_text',
+                'custbody_efx_fe_folio_cfresko',
+
+                'billingaddress.address1',
+                'billingaddress.addressee',
+                'billingaddress.city',
+                'billingaddress.zip',
+                'billingaddress.custrecord_efx_fe_lugar_city',
+                'billingaddress.custrecord_efx_fe_lugar_gln',
+                'billingaddress.custrecord_efx_fe_cedis_cfresko',
+                'billingaddress.custrecord_streetname',
+                'billingaddress.custrecord_streetnum',
+
+                'shippingaddress.address1',
+                'shippingaddress.addressee',
+                'shippingaddress.city',
+                'shippingaddress.zip',
+                'shippingaddress.custrecord_efx_fe_lugar_city',
+                'shippingaddress.custrecord_efx_fe_lugar_gln',
+                'shippingaddress.custrecord_efx_fe_buyer_gln',
+                'shippingaddress.custrecord_efx_fe_cedis_cfresko',
+                'shippingaddress.custrecord_streetname',
+                'shippingaddress.custrecord_streetnum',
+            ];
+
+            var SUBSIDIARIES = runtime.isFeatureInEffect({ feature: "SUBSIDIARIES" });
+            var LOCATIONS = runtime.isFeatureInEffect({ feature: "LOCATIONS" });
+
+            if (SUBSIDIARIES) {
+                arrayColumn.push('subsidiary');
+            }
+            if (LOCATIONS) {
+                arrayColumn.push('location');
+            }
+            try {
+                var LookupField = search.lookupFields({
+                    type: search.Type.TRANSACTION,
+                    id: param_id,
+                    columns: arrayColumn
+                });
+                log.audit({ title: 'LookupField', details: JSON.stringify(LookupField) });
+
+                {
+
+                    //
+                    if (SUBSIDIARIES && LookupField.subsidiary) {
+                        var resultSub = record.load({
+                            type: search.Type.SUBSIDIARY,
+                            id: LookupField.subsidiary[0].value,
+                        });
+
+                        respuesta.data.alternatePartyIdentificationInvoiceCreator = resultSub.getValue({ fieldId: "federalidnumber" }) || '';// 'NFM0910317L6',
+                        respuesta.data.nameInvoiceCreator = resultSub.getValue({ fieldId: "legalname" }) || '';// 'NUTRITION FACT DE MEXICO SA DE CV',
+                        var mainaddressOBJ = resultSub.getSubrecord({ fieldId: 'mainaddress' });
+                        respuesta.data.streetAddressOneInvoiceCreator = mainaddressOBJ.getValue({ fieldId: 'custrecord_streetname' }) || '' + mainaddressOBJ.getValue({ fieldId: 'custrecord_streetnum' }) || '';//
+                        respuesta.data.cityInvoiceCreator = mainaddressOBJ.getText({ fieldId: 'city' }) || '';// 'AZCAPOTZALCO',
+                        respuesta.data.postalCodeInvoiceCreator = mainaddressOBJ.getValue({ fieldId: 'zip' }) || '';// '02410',
+
+                    } else if (!SUBSIDIARIES) {
+                        var configRecObj = config.load({
+                            type: config.Type.COMPANY_INFORMATION
+                        });
+
+                        respuesta.data.alternatePartyIdentificationInvoiceCreator = configRecObj.getValue({ fieldId: 'employerid' }) || '';
+                        respuesta.data.nameInvoiceCreator = configRecObj.getValue({ fieldId: 'legalname' }) || '';
+                        var mainaddressOBJ = configRecObj.getSubrecord({ fieldId: 'mainaddress' });
+                        respuesta.data.streetAddressOneInvoiceCreator = mainaddressOBJ.getValue({ fieldId: 'custrecord_streetname' }) || '' + mainaddressOBJ.getValue({ fieldId: 'custrecord_streetnum' }) || '';//;
+                        respuesta.data.cityInvoiceCreator = mainaddressOBJ.getText({ fieldId: 'city' }) || '';
+                        respuesta.data.postalCodeInvoiceCreator = mainaddressOBJ.getValue({ fieldId: 'zip' }) || '';
+                    }
+                    //
+                }
+                var horaMexico = horaActual();
+
+                if (LookupField['custbody_efx_fe_fecha_recibo']) {
+                    // respuesta.data.ReferenceDate = fechaSplit(LookupField['custbody_efx_cf_fechaordencompra'], '/', '-', 0, 1, 2, 'T' + horaMexico);
+                    respuesta.data.ReferenceDate = fechaSplit(LookupField['custbody_efx_fe_fecha_recibo'], '/', '-', 0, 1, 2, '');
+
+                }
+
+                if (LookupField['custbody_efx_cf_fechaordencompra']) {
+                    // respuesta.data.DeliveryDate = fechaSplit(LookupField['trandate'], '/', '-', 0, 1, 2, 'T' + horaMexico);
+                    respuesta.data.DeliveryDate = fechaSplit(LookupField['custbody_efx_cf_fechaordencompra'], '/', '-', 0, 1, 2, '');
+
+                }
+
+                respuesta.data.folio = LookupField['tranid'] || '';
+                respuesta.data.cedis = LookupField['billingaddress.custrecord_efx_fe_cedis_cfresko'] || '';
+                respuesta.data.cedis_envio = LookupField['shippingaddress.custrecord_efx_fe_cedis_cfresko'] || '';
+                respuesta.data.terminos = LookupField['terms'] || '';
+                respuesta.data.folio_recibo = LookupField['custbody_efx_fe_folio_cfresko'] || '';
+                respuesta.data.serie = runtime.getCurrentScript().getParameter({ name: 'custscript_efx_fe_serie_invoice' }) || '';
+
+                var json_tax = '';
+                if (LookupField['custbody_efx_fe_tax_json']) {
+                    json_tax = JSON.parse(LookupField['custbody_efx_fe_tax_json']);
+                    respuesta.data.iva = json_tax.iva_total;
+                    respuesta.data.ieps = json_tax.ieps_total;
+                    if (json_tax.rates_ieps) {
+
+                    }
+                    if (json_tax.rates_iva) {
+                        var rate_iva_total = '0.00';
+                        var rate_iva_total_num = 0;
+                        for (var i = 0; i < Object.keys(json_tax.rates_iva).length; i++) {
+                            var rates_obj_iva = Object.keys(json_tax.rates_iva)[i];
+                            var rate_split = rates_obj_iva.split(' ');
+                            var rate_num = rate_split[1].replace('%', '');
+                            var rate_iva = parseFloat(rate_num);
+                            rate_iva_total_num = rate_iva_total_num + rate_iva;
+                        }
+                        rate_iva_total = rate_iva_total_num.toFixed(4);
+                    }
+                }
+
+
+                respuesta.data.specialInstruction.push({
+                    code: 'ZZZ',
+                    text: LookupField['custbody_efx_fe_total_text'] || ''
+                });
+                // respuesta.data.specialInstruction.push({code: 'AAB', text: 'PAGO A 45 DIAS'});
+                // respuesta.data.specialInstruction.push({code: 'PUR', text: 'PAGO GENERA DESCUENTO'});
+
+
+                respuesta.data.tax.push({
+                    type: 'GST',
+                    taxPercentage: '0.00',
+                    taxAmount: json_tax.ieps_total || 0,
+                    taxCategory: 'TRANSFERIDO',
+                });
+                respuesta.data.tax.push({
+                    type: 'VAT',
+                    taxPercentage: rate_iva_total,
+                    taxAmount: json_tax.iva_total || 0,
+                    taxCategory: 'TRANSFERIDO',
+                });
+
+
+                respuesta.data.totalAmount = LookupField['total'] || '';
+                respuesta.data.baseAmount = LookupField['total'] || '';
+                respuesta.data.payableAmount = LookupField['total'] || '';
+
+
+                respuesta.data.alternatePartyIdentification = LookupField['customer.custentity_efx_cf_idproveedor'] || '';
+                respuesta.data.sellergln = LookupField['customer.custentity_efx_cf_sellergln'] || '';
+                respuesta.data.glnInvoiceCreator = LookupField['customer.custentity_efx_cf_sellergln'] || '';
+
+                //respuesta.data.tradeIdentification = LookupField['customer.custentity_efx_cf_tradeidentification'] || '';
+
+                respuesta.data.glnShipTo = LookupField['billingaddress.custrecord_efx_fe_lugar_gln'] || '';
+                respuesta.data.glnShipTo_envio = LookupField['shippingaddress.custrecord_efx_fe_lugar_gln'] || '';
+
+                if (LookupField['shippingaddress.custrecord_efx_fe_buyer_gln']) {
+                    respuesta.data.buyergln = LookupField['shippingaddress.custrecord_efx_fe_buyer_gln'] || '';
+                } else {
+                    respuesta.data.buyergln = LookupField['customer.custentity_efx_cf_buyergln'] || '';
+                }
+
+                respuesta.data.orderIdentificationreferenceIdentification = LookupField['otherrefnum'] || '';
+                respuesta.data.personOrDepartmentName = LookupField['customer.custentity_efx_cf_buyerperson'] || '';
+
+                respuesta.data.nameShipTo = LookupField['billingaddress.custrecord_efx_fe_lugar_city'] || '';
+                respuesta.data.streetAddressOneShipTo = LookupField['billingaddress.custrecord_streetname'] || '' + LookupField['billingaddress.custrecord_streetnum'] || '';
+                respuesta.data.cityShipTo = LookupField['billingaddress.city'] || '';
+                respuesta.data.postalCodeShipTo = LookupField['billingaddress.zip'] || '';
+
+                respuesta.data.nameShipTo_envio = LookupField['shippingaddress.custrecord_efx_fe_lugar_city'] || '';
+                respuesta.data.streetAddressOneShipTo_envio = LookupField['shippingaddress.custrecord_streetname'] || '' + LookupField['shippingaddress.custrecord_streetnum'] || '';
+                respuesta.data.cityShipTo_envio = LookupField['shippingaddress.city'] || '';
+                respuesta.data.postalCodeShipTo_envio = LookupField['shippingaddress.zip'] || '';
+
+                var objParametro = {
+                    id: param_id,
+                    type: param_type,
+                    sublist: 'item',
+                    bodyFieldValue: [
+                        'discounttotal'
+                    ],
+                    bodyFieldText: [],
+                    lineField: [
+                        'itemtype',
+                        'item',
+                        'itemTEXT',
+                        'quantity',
+                        'rate',
+                        'custcol_efx_fe_upc_code',
+                        'amount',
+                        'grossamt',
+                        'custitem_efx_cf_tradeidentification',
+                    ],
+                };
+
+                var transactionField = getTransactionField(objParametro);
+                if (transactionField.succes) {
+                    var descuento_total_lineas = 0;
+                    for (var ir in transactionField.data.lineField) {
+                        //buscar descuentos
+                        var descuento_linea = 0;
+                        var linea_disc = parseInt(ir) + 1;
+                        var tamano_linefield = Object.keys(transactionField.data.lineField).length;
+                        log.audit({ title: 'linea_disc', details: linea_disc });
+                        log.audit({ title: 'tamano_linefield', details: tamano_linefield });
+                        if (linea_disc < tamano_linefield) {
+                            if (transactionField.data.lineField[linea_disc].itemtype == 'Discount') {
+                                descuento_linea = transactionField.data.lineField[ir].amount;
+                                if (descuento_linea < 0) {
+                                    descuento_linea = descuento_linea * (-1);
+                                }
+                            }
+                        }
+                        //fin de buscar descuentos
+                        if (
+                            transactionField.data.lineField[ir].itemtype == 'InvtPart' ||
+                            transactionField.data.lineField[ir].itemtype == 'Service' ||
+                            transactionField.data.lineField[ir].itemtype == 'Kit' ||
+                            transactionField.data.lineField[ir].itemtype == 'NonInvtPart' ||
+                            transactionField.data.lineField[ir].itemtype == 'Assembly' ||
+                            transactionField.data.lineField[ir].itemtype == 'Markup'
+                        ) {
+
+                            var rec_transaction = record.load({
+                                type: param_type,
+                                id: param_id,
+                                isDynamic: true,
+                            });
+
+                            var json_col = rec_transaction.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_efx_fe_tax_json',
+                                line: ir
+                            });
+
+                            var tradeidentification = rec_transaction.getSublistText({
+                                sublistId: 'item',
+                                fieldId: 'custitem_efx_cf_tradeidentification',
+                                line: ir
+                            });
+                            var json_tax_col = '';
+                            if (json_col) {
+                                json_tax_col = JSON.parse(json_col);
+                            }
+
+
+                            descuento_total_lineas = descuento_total_lineas + descuento_linea;
+                            respuesta.data.item.push({
+                                name: transactionField.data.lineField[ir].itemTEXT || '',
+                                sku: transactionField.data.lineField[ir].custcol_efx_fe_upc_code || '',
+                                tradeidentification: tradeidentification || '',
+                                rate: transactionField.data.lineField[ir].rate || '',
+                                quantity: transactionField.data.lineField[ir].quantity || '',
+                                netPrice: transactionField.data.lineField[ir].amount || '',
+                                discount: descuento_linea,
+                                taxPercentage: '0',
+                                taxAmount: '0',
+                                grossAmount: transactionField.data.lineField[ir].grossamt || '',
+                                netAmount: transactionField.data.lineField[ir].amount || '',
+                                iva_rate: (json_tax_col.iva.rate).toFixed(4) || 0,
+                                iva_importe: (json_tax_col.iva.importe) || 0,
+                                ieps_rate: (json_tax_col.ieps.rate).toFixed(4) || 0,
+                                ieps_importe: (json_tax_col.ieps.importe) || 0
+                            });
+                        }
+                    }
+                    if (transactionField.data.bodyFieldValue.discounttotal) {
+                        respuesta.data.descuentototal = transactionField.data.bodyFieldValue.discounttotal;
+                    } else {
+                        respuesta.data.descuentototal = descuento_total_lineas.toFixed(2);
+                    }
+                }
+
+                respuesta.succes = true;
+            } catch (error) {
+                log.error({ title: 'error getDataCityFresco', details: error });
+                respuesta.succes = false;
+            }
+            log.audit({ title: 'respuesta getDataCityFresco', details: JSON.stringify(respuesta) });
+            return respuesta;
+        }
+
+        function getXmlCityFresco(param_obj_CityFresco) {
+            var respuesta = {
+                succes: false,
+                data: '',
+                xmlns: '',
+            };
+            try {
+                respuesta.xmlns = ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ';
+
+                respuesta.xmlns += ' xsi:schemaLocation="http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv33.xsd" ';
+
+                var xmlCityFresco = '';
+                xmlCityFresco += '<cfdi:Addenda>';
+                xmlCityFresco += '    <requestForPayment';
+                xmlCityFresco += '        DeliveryDate="' + param_obj_CityFresco.DeliveryDate + '"';
+                xmlCityFresco += '        documentStatus="ORIGINAL"';
+                xmlCityFresco += '        documentStructureVersion="AMC7.1"';
+                xmlCityFresco += '        contentVersion="1.3.1"';
+                xmlCityFresco += '        type="SimpleInvoiceType">';
+                xmlCityFresco += '        <requestForPaymentIdentification>';
+                xmlCityFresco += '            <entityType>INVOICE</entityType>';
+                xmlCityFresco += '            <uniqueCreatorIdentification>' + param_obj_CityFresco.folio + '</uniqueCreatorIdentification>';
+                xmlCityFresco += '        </requestForPaymentIdentification>';
+
+                for (var i in param_obj_CityFresco.specialInstruction) {
+                    xmlCityFresco += '        <specialInstruction code="' + param_obj_CityFresco.specialInstruction[i].code + '">';
+                    xmlCityFresco += '            <text>' + param_obj_CityFresco.specialInstruction[i].text + '</text>';
+                    xmlCityFresco += '        </specialInstruction>';
+                }
+
+                xmlCityFresco += '        <orderIdentification>';
+                xmlCityFresco += '            <referenceIdentification type="ON">' + param_obj_CityFresco.orderIdentificationreferenceIdentification + '</referenceIdentification>';
+                xmlCityFresco += '            <ReferenceDate>' + param_obj_CityFresco.ReferenceDate + '</ReferenceDate>';
+                xmlCityFresco += '        </orderIdentification>';
+
+                xmlCityFresco += '        <AdditionalInformation>';
+                xmlCityFresco += '            <referenceIdentification type="ACE">' + param_obj_CityFresco.orderIdentificationreferenceIdentification + '</referenceIdentification>';
+                if (param_obj_CityFresco.cedis_envio) {
+                    xmlCityFresco += '            <referenceIdentification type="DQ">' + param_obj_CityFresco.folio_recibo + '</referenceIdentification>';
+                } else {
+                    xmlCityFresco += '            <referenceIdentification type="DQ">' + param_obj_CityFresco.folio_recibo + '</referenceIdentification>';
+                }
+                xmlCityFresco += '            <referenceIdentification type="ON">' + param_obj_CityFresco.orderIdentificationreferenceIdentification + '</referenceIdentification>';
+                xmlCityFresco += '            <referenceIdentification type="IV">' + param_obj_CityFresco.folio + '</referenceIdentification>';
+                xmlCityFresco += '        </AdditionalInformation>';
+
+                //comentar respecto a estos campos
+                if (param_obj_CityFresco.folio_recibo && param_obj_CityFresco.ReferenceDate) {
+                    xmlCityFresco += '        <DeliveryNote>';
+                    xmlCityFresco += '            <referenceIdentification>' + param_obj_CityFresco.folio_recibo + '</referenceIdentification>';
+                    xmlCityFresco += '            <ReferenceDate>' + param_obj_CityFresco.ReferenceDate + '</ReferenceDate>';
+                    xmlCityFresco += '        </DeliveryNote>';
+                }
+
+
+                xmlCityFresco += '        <buyer>';
+                xmlCityFresco += '            <gln>' + param_obj_CityFresco.buyergln + '</gln>';
+                xmlCityFresco += '            <contactInformation>';
+                xmlCityFresco += '                <personOrDepartmentName>';
+                xmlCityFresco += '                    <text>' + param_obj_CityFresco.personOrDepartmentName + '</text>';
+                xmlCityFresco += '                </personOrDepartmentName>';
+                xmlCityFresco += '            </contactInformation>';
+                xmlCityFresco += '        </buyer>';
+
+                xmlCityFresco += '        <seller>';
+                xmlCityFresco += '            <gln>' + param_obj_CityFresco.sellergln + '</gln>';
+                xmlCityFresco += '            <alternatePartyIdentification type="SELLER_ASSIGNED_IDENTIFIER_FOR_A_PARTY">' + param_obj_CityFresco.alternatePartyIdentification + '</alternatePartyIdentification>';
+                xmlCityFresco += '        </seller>';
+
+                xmlCityFresco += '        <shipTo>';
+                if (param_obj_CityFresco.glnShipTo_envio) {
+                    xmlCityFresco += '            <gln>' + param_obj_CityFresco.glnShipTo_envio + '</gln>';
+                } else {
+                    xmlCityFresco += '            <gln>' + param_obj_CityFresco.glnShipTo + '</gln>';
+                }
+                xmlCityFresco += '            <nameAndAddress>';
+                if (param_obj_CityFresco.nameShipTo_envio) {
+                    xmlCityFresco += '                <name>' + param_obj_CityFresco.nameShipTo_envio + '</name>';
+                } else {
+                    xmlCityFresco += '                <name>' + param_obj_CityFresco.nameShipTo + '</name>';
+                }
+                if (param_obj_CityFresco.streetAddressOneShipTo_envio) {
+                    xmlCityFresco += '                <streetAddressOne>' + param_obj_CityFresco.streetAddressOneShipTo_envio + '</streetAddressOne>';
+                } else {
+                    xmlCityFresco += '                <streetAddressOne>' + param_obj_CityFresco.streetAddressOneShipTo + '</streetAddressOne>';
+                }
+                if (param_obj_CityFresco.cityShipTo_envio) {
+                    xmlCityFresco += '                <city>' + param_obj_CityFresco.cityShipTo_envio + '</city>';
+                } else {
+                    xmlCityFresco += '                <city>' + param_obj_CityFresco.cityShipTo + '</city>';
+                }
+                if (param_obj_CityFresco.postalCodeShipTo_envio) {
+                    xmlCityFresco += '                <postalCode>' + param_obj_CityFresco.postalCodeShipTo_envio + '</postalCode>';
+                } else {
+                    xmlCityFresco += '                <postalCode>' + param_obj_CityFresco.postalCodeShipTo + '</postalCode>';
+                }
+                xmlCityFresco += '            </nameAndAddress>';
+                xmlCityFresco += '        </shipTo>';
+
+                xmlCityFresco += '        <InvoiceCreator>';
+                xmlCityFresco += '            <gln>' + param_obj_CityFresco.glnInvoiceCreator + '</gln>';
+                xmlCityFresco += '            <alternatePartyIdentification type="VA">' + param_obj_CityFresco.alternatePartyIdentificationInvoiceCreator + '</alternatePartyIdentification>';
+                xmlCityFresco += '            <nameAndAddress>';
+                xmlCityFresco += '                <name>' + param_obj_CityFresco.nameInvoiceCreator + '</name>';
+                xmlCityFresco += '                <streetAddressOne>' + param_obj_CityFresco.streetAddressOneInvoiceCreator + '</streetAddressOne>';
+                xmlCityFresco += '                <city>' + param_obj_CityFresco.cityInvoiceCreator + '</city>';
+                xmlCityFresco += '                <postalCode>' + param_obj_CityFresco.postalCodeInvoiceCreator + '</postalCode>';
+                xmlCityFresco += '            </nameAndAddress>';
+                xmlCityFresco += '        </InvoiceCreator>';
+
+                xmlCityFresco += '        <currency currencyISOCode="' + param_obj_CityFresco.currencyISOCode + '">';
+                xmlCityFresco += '            <currencyFunction>BILLING_CURRENCY</currencyFunction>';
+                xmlCityFresco += '            <rateOfChange>' + param_obj_CityFresco.rateOfChange + '</rateOfChange>';
+                xmlCityFresco += '        </currency>';
+
+                xmlCityFresco += '        <paymentTerms';
+                xmlCityFresco += '            paymentTermsEvent="DATE_OF_INVOICE"';
+                xmlCityFresco += '            PaymentTermsRelationTime="REFERENCE_AFTER">';
+                xmlCityFresco += '            <netPayment netPaymentTermsType="BASIC_NET">';
+                xmlCityFresco += '                <paymentTimePeriod>';
+                xmlCityFresco += '                    <timePeriodDue timePeriod="DAYS">';
+                if (param_obj_CityFresco.terminos) {
+                    var terminoscfk = (param_obj_CityFresco.terminos[0].text).split(' ');
+                    xmlCityFresco += '                        <value>' + terminoscfk[0] + '</value>';
+                } else {
+                    xmlCityFresco += '                        <value></value>';
+                }
+
+                xmlCityFresco += '                    </timePeriodDue>';
+                xmlCityFresco += '                </paymentTimePeriod>';
+                xmlCityFresco += '            </netPayment>';
+                xmlCityFresco += '        </paymentTerms>';
+
+                xmlCityFresco += '        <allowanceCharge';
+                xmlCityFresco += '            settlementType="BILL_BACK"';
+                xmlCityFresco += '            allowanceChargeType="ALLOWANCE_GLOBAL">';
+                xmlCityFresco += '            <specialServicesType>AJ</specialServicesType>';
+                xmlCityFresco += '            <monetaryAmountOrPercentage>';
+                xmlCityFresco += '                <rate base="INVOICE_VALUE">';
+                xmlCityFresco += '                    <percentage>' + param_obj_CityFresco.monetaryAmountOrPercentage + '</percentage>';
+                xmlCityFresco += '                </rate>';
+                xmlCityFresco += '            </monetaryAmountOrPercentage>';
+                xmlCityFresco += '        </allowanceCharge>';
+
+                var itemNum = 0;
+                for (var itemi in param_obj_CityFresco.item) {
+                    itemNum++;
+                    xmlCityFresco += '        <lineItem type="SimpleInvoiceLineItemType" number="' + itemNum + '">';
+                    xmlCityFresco += '            <tradeItemIdentification>';
+                    xmlCityFresco += '                <gtin>' + param_obj_CityFresco.item[itemi].sku + '</gtin>';
+                    xmlCityFresco += '            </tradeItemIdentification>';
+                    xmlCityFresco += '            <alternateTradeItemIdentification type="' + param_obj_CityFresco.item[itemi].tradeidentification + '">' + param_obj_CityFresco.item[itemi].sku + '</alternateTradeItemIdentification>';
+
+                    xmlCityFresco += '            <tradeItemDescriptionInformation language="ES">';
+                    xmlCityFresco += '                <longText>' + xml.escape({ xmlText: param_obj_CityFresco.item[itemi].name }) + '</longText>';
+                    xmlCityFresco += '            </tradeItemDescriptionInformation>';
+                    if (param_obj_CityFresco.item[itemi].tradeidentification == 'BUYER_ASSIGNED') {
+                        xmlCityFresco += '            <invoicedQuantity unitOfMeasure="PZA">' + param_obj_CityFresco.item[itemi].quantity + '.000</invoicedQuantity>';
+
+                    } else {
+                        xmlCityFresco += '            <invoicedQuantity unitOfMeasure="CA">' + param_obj_CityFresco.item[itemi].quantity + '.000</invoicedQuantity>';
+                        xmlCityFresco += '            <aditionalQuantity QuantityType="NUM_CONSUMER_UNITS">' + param_obj_CityFresco.item[itemi].quantity + '</aditionalQuantity>';
+                    }
+
+                    xmlCityFresco += '            <grossPrice>';
+                    xmlCityFresco += '                <Amount>' + param_obj_CityFresco.item[itemi].rate + '</Amount>';
+                    xmlCityFresco += '            </grossPrice>';
+                    xmlCityFresco += '            <netPrice>';
+                    xmlCityFresco += '                <Amount>' + param_obj_CityFresco.item[itemi].rate + '</Amount>';
+                    xmlCityFresco += '            </netPrice>';
+                    xmlCityFresco += '            <AdditionalInformation>';
+                    xmlCityFresco += '                <referenceIdentification type="ON">' + param_obj_CityFresco.orderIdentificationreferenceIdentification + '</referenceIdentification>';
+                    xmlCityFresco += '            </AdditionalInformation>';
+                    xmlCityFresco += '            <tradeItemTaxInformation>';
+                    xmlCityFresco += '                <taxTypeDescription>VAT</taxTypeDescription>';
+                    xmlCityFresco += '                <referenceNumber>IVA</referenceNumber>';
+                    xmlCityFresco += '                <tradeItemTaxAmount>';
+                    xmlCityFresco += '                    <taxPercentage>' + param_obj_CityFresco.item[itemi].iva_rate + '</taxPercentage>';
+                    xmlCityFresco += '                    <taxAmount>' + param_obj_CityFresco.item[itemi].iva_importe + '</taxAmount>';
+                    xmlCityFresco += '                </tradeItemTaxAmount>';
+                    xmlCityFresco += '                <taxCategory>TRANSFERIDO</taxCategory>';
+                    xmlCityFresco += '            </tradeItemTaxInformation>';
+                    xmlCityFresco += '            <tradeItemTaxInformation>';
+                    xmlCityFresco += '                <taxTypeDescription>GST</taxTypeDescription>';
+                    xmlCityFresco += '                <referenceNumber>IEPS</referenceNumber>';
+                    xmlCityFresco += '                <tradeItemTaxAmount>';
+                    xmlCityFresco += '                    <taxPercentage>' + param_obj_CityFresco.item[itemi].ieps_rate + '</taxPercentage>';
+                    xmlCityFresco += '                    <taxAmount>' + param_obj_CityFresco.item[itemi].ieps_importe + '</taxAmount>';
+                    xmlCityFresco += '                </tradeItemTaxAmount>';
+                    xmlCityFresco += '                <taxCategory>TRANSFERIDO</taxCategory>';
+                    xmlCityFresco += '            </tradeItemTaxInformation>';
+                    xmlCityFresco += '            <totalLineAmount>';
+                    xmlCityFresco += '                <grossAmount>';
+                    xmlCityFresco += '                    <Amount>' + param_obj_CityFresco.item[itemi].grossAmount + '</Amount>';
+                    xmlCityFresco += '                </grossAmount>';
+                    xmlCityFresco += '                <netAmount>';
+                    xmlCityFresco += '                    <Amount>' + param_obj_CityFresco.item[itemi].netAmount + '</Amount>';
+                    xmlCityFresco += '                </netAmount>';
+                    xmlCityFresco += '            </totalLineAmount>';
+                    xmlCityFresco += '        </lineItem>';
+                }
+
+                xmlCityFresco += '        <totalAmount>';
+                xmlCityFresco += '            <Amount>' + param_obj_CityFresco.totalAmount + '</Amount>';
+                xmlCityFresco += '        </totalAmount>';
+                if (param_obj_CityFresco.item[itemi].tradeidentification == 'BUYER_ASSIGNED') {
+                    xmlCityFresco += '        <TotalAllowanceCharge allowanceOrChargeType="ALLOWANCE">';
+                    xmlCityFresco += '            <Amount>' + 0.00 + '</Amount>';
+                    xmlCityFresco += '        </TotalAllowanceCharge>';
+                } else { }
+                xmlCityFresco += '        <baseAmount>';
+                xmlCityFresco += '            <Amount>' + param_obj_CityFresco.baseAmount + '</Amount>';
+                xmlCityFresco += '        </baseAmount>';
+
+                for (var taxi in param_obj_CityFresco.tax) {
+                    xmlCityFresco += '        <tax type="' + param_obj_CityFresco.tax[taxi].type + '">';
+                    xmlCityFresco += '            <taxPercentage>' + param_obj_CityFresco.tax[taxi].taxPercentage + '</taxPercentage>';
+                    xmlCityFresco += '            <taxAmount>' + param_obj_CityFresco.tax[taxi].taxAmount + '</taxAmount>';
+                    xmlCityFresco += '            <taxCategory>' + param_obj_CityFresco.tax[taxi].taxCategory + '</taxCategory>';
+                    xmlCityFresco += '        </tax>';
+                }
+
+                xmlCityFresco += '        <payableAmount>';
+                xmlCityFresco += '            <Amount>' + param_obj_CityFresco.payableAmount + '</Amount>';
+                xmlCityFresco += '        </payableAmount>';
+
+                xmlCityFresco += '    </requestForPayment>';
+                xmlCityFresco += '</cfdi:Addenda>';
+                respuesta.data = xmlCityFresco;
+                respuesta.succes = true;
+
+            } catch (error) {
+                log.error({ title: 'error getXmlCityFresco', details: error });
+                respuesta.succes = false;
+            }
+            log.audit({ title: 'respuesta getXmlCityFresco', details: JSON.stringify(respuesta) });
+            return respuesta;
+        }
+
+        function getDataComercialCityFresco(param_id, param_type) {
+            var respuesta = {
+                succes: false,
+                data: {
+                    serie: '',
+                    folio: '',
+                    DeliveryDate: '',
+                    ReferenceDate: '',
+                    orderIdentificationreferenceIdentification: '',
+                    specialInstruction: [],
+                    buyergln: '',
+                    sellergln: '',
+                    personOrDepartmentName: '',
+                    alternatePartyIdentification: '',
+                    glnShipTo: '',
+
+                    nameShipTo: '',
+                    streetAddressOneShipTo: '',
+                    cityShipTo: '',
+                    postalCodeShipTo: '',
+                    ColoniaShipTo: '',
+
+                    glnInvoiceCreator: '',
+
+                    alternatePartyIdentificationInvoiceCreator: '',
+                    nameInvoiceCreator: '',
+                    streetAddressOneInvoiceCreator: '',
+                    cityInvoiceCreator: '',
+                    postalCodeInvoiceCreator: '',
+
+                    item: [],
+
+                    tax: [],
+                    totalAmount: '',
+                    descuentototal: 0,
+                    baseAmount: '',
+                    payableAmount: '',
+
+                    currencyISOCode: 'MXN',
+                    rateOfChange: '1',
+                    monetaryAmountOrPercentage: '0.00',
+
+                }
+            };
+
+            var arrayColumn = [
+                'trandate',
+                'custbody_efx_cf_fechaordencompra',
+                'custbody_efx_fe_tax_json',
+                'otherrefnum',
+                'custbody_efx_fe_fecha_recibo',
+                'tranid',
+                'total',
+                'terms',
+
+                'customer.custentity_efx_cf_buyerperson',
+                'customer.custentity_efx_cf_buyergln',
+                'customer.custentity_efx_cf_idproveedor',
+                'customer.custentity_efx_cf_sellergln',
+                //'customer.custentity_efx_cf_tradeidentification',
+
+                'custbody_efx_fe_total_text',
+                'custbody_efx_fe_folio_cfresko',
+
+                'billingaddress.address1',
+                'billingaddress.addressee',
+                'billingaddress.city',
+                'billingaddress.zip',
+                'billingaddress.custrecord_efx_fe_lugar_city',
+                'billingaddress.custrecord_efx_fe_lugar_gln',
+                'billingaddress.custrecord_efx_fe_cedis_cfresko',
+                'billingaddress.custrecord_streetname',
+                'billingaddress.custrecord_streetnum',
+                'billingaddress.custrecord_colonia',
+                'billingaddress.custrecord_village',
+                'billingaddress.state',
+                'billingaddress.country',
+
+                'shippingaddress.address1',
+                'shippingaddress.addressee',
+                'shippingaddress.city',
+                'shippingaddress.zip',
+                'shippingaddress.custrecord_efx_fe_lugar_city',
+                'shippingaddress.custrecord_efx_fe_lugar_gln',
+                'shippingaddress.custrecord_efx_fe_cedis_cfresko',
+                'shippingaddress.custrecord_streetname',
+                'shippingaddress.custrecord_streetnum',
+                'shippingaddress.custrecord_colonia',
+                'shippingaddress.custrecord_village',
+                'shippingaddress.state',
+                'shippingaddress.country',
+                'shippingaddress.custrecord_efx_fe_buyer_gln',
+            ];
+
+            var SUBSIDIARIES = runtime.isFeatureInEffect({ feature: "SUBSIDIARIES" });
+            var LOCATIONS = runtime.isFeatureInEffect({ feature: "LOCATIONS" });
+
+            if (SUBSIDIARIES) {
+                arrayColumn.push('subsidiary');
+            }
+            if (LOCATIONS) {
+                arrayColumn.push('location');
+            }
+            try {
+                var LookupField = search.lookupFields({
+                    type: search.Type.TRANSACTION,
+                    id: param_id,
+                    columns: arrayColumn
+                });
+                log.audit({ title: 'LookupField', details: JSON.stringify(LookupField) });
+
+                {
+
+                    //
+                    if (SUBSIDIARIES && LookupField.subsidiary) {
+                        var resultSub = record.load({
+                            type: search.Type.SUBSIDIARY,
+                            id: LookupField.subsidiary[0].value,
+                        });
+
+                        respuesta.data.alternatePartyIdentificationInvoiceCreator = resultSub.getValue({ fieldId: "federalidnumber" }) || '';// 'NFM0910317L6',
+                        respuesta.data.nameInvoiceCreator = resultSub.getValue({ fieldId: "legalname" }) || '';// 'NUTRITION FACT DE MEXICO SA DE CV',
+                        var mainaddressOBJ = resultSub.getSubrecord({ fieldId: 'mainaddress' });
+                        respuesta.data.streetAddressOneInvoiceCreator = mainaddressOBJ.getValue({ fieldId: 'custrecord_streetname' }) || '' + mainaddressOBJ.getValue({ fieldId: 'custrecord_streetnum' }) || '';//
+                        respuesta.data.cityInvoiceCreator = mainaddressOBJ.getText({ fieldId: 'city' }) || '';// 'AZCAPOTZALCO',
+                        respuesta.data.postalCodeInvoiceCreator = mainaddressOBJ.getValue({ fieldId: 'zip' }) || '';// '02410',
+
+                    } else if (!SUBSIDIARIES) {
+                        var configRecObj = config.load({
+                            type: config.Type.COMPANY_INFORMATION
+                        });
+
+                        respuesta.data.alternatePartyIdentificationInvoiceCreator = configRecObj.getValue({ fieldId: 'employerid' }) || '';
+                        respuesta.data.nameInvoiceCreator = configRecObj.getValue({ fieldId: 'legalname' }) || '';
+                        var mainaddressOBJ = configRecObj.getSubrecord({ fieldId: 'mainaddress' });
+                        respuesta.data.streetAddressOneInvoiceCreator = mainaddressOBJ.getValue({ fieldId: 'custrecord_streetname' }) || '' + mainaddressOBJ.getValue({ fieldId: 'custrecord_streetnum' }) || '';//;
+                        respuesta.data.cityInvoiceCreator = mainaddressOBJ.getText({ fieldId: 'city' }) || '';
+                        respuesta.data.postalCodeInvoiceCreator = mainaddressOBJ.getValue({ fieldId: 'zip' }) || '';
+                    }
+                    //
+                }
+                var horaMexico = horaActual();
+
+                if (LookupField['custbody_efx_fe_fecha_recibo']) {
+                    // respuesta.data.ReferenceDate = fechaSplit(LookupField['custbody_efx_cf_fechaordencompra'], '/', '-', 0, 1, 2, 'T' + horaMexico);
+                    respuesta.data.ReferenceDate = fechaSplit(LookupField['custbody_efx_fe_fecha_recibo'], '/', '-', 0, 1, 2, '');
+
+                }
+
+                if (LookupField['custbody_efx_cf_fechaordencompra']) {
+                    // respuesta.data.DeliveryDate = fechaSplit(LookupField['trandate'], '/', '-', 0, 1, 2, 'T' + horaMexico);
+                    respuesta.data.DeliveryDate = fechaSplit(LookupField['custbody_efx_cf_fechaordencompra'], '/', '-', 0, 1, 2, '');
+
+                }
+
+                respuesta.data.folio = LookupField['tranid'] || '';
+                respuesta.data.cedis = LookupField['billingaddress.custrecord_efx_fe_cedis_cfresko'] || '';
+                respuesta.data.cedis_envio = LookupField['shippingaddress.custrecord_efx_fe_cedis_cfresko'] || '';
+                respuesta.data.terminos = LookupField['terms'] || '';
+                respuesta.data.folio_recibo = LookupField['custbody_efx_fe_folio_cfresko'] || '';
+                respuesta.data.serie = runtime.getCurrentScript().getParameter({ name: 'custscript_efx_fe_serie_invoice' }) || '';
+
+                var json_tax = '';
+                if (LookupField['custbody_efx_fe_tax_json']) {
+                    json_tax = JSON.parse(LookupField['custbody_efx_fe_tax_json']);
+                    respuesta.data.iva = json_tax.iva_total;
+                    respuesta.data.ieps = json_tax.ieps_total;
+                    if (json_tax.rates_ieps) {
+
+                    }
+                    if (json_tax.rates_iva) {
+                        var rate_iva_total = '0.00';
+                        var rate_iva_total_num = 0;
+                        for (var i = 0; i < Object.keys(json_tax.rates_iva).length; i++) {
+                            var rates_obj_iva = Object.keys(json_tax.rates_iva)[i];
+                            var rate_split = rates_obj_iva.split(' ');
+                            var rate_num = rate_split[1].replace('%', '');
+                            var rate_iva = parseFloat(rate_num);
+                            rate_iva_total_num = rate_iva_total_num + rate_iva;
+                        }
+                        rate_iva_total = rate_iva_total_num.toFixed(4);
+                    }
+                }
+
+
+                respuesta.data.specialInstruction.push({
+                    code: 'ZZZ',
+                    text: LookupField['custbody_efx_fe_total_text'] || ''
+                });
+                // respuesta.data.specialInstruction.push({code: 'AAB', text: 'PAGO A 45 DIAS'});
+                // respuesta.data.specialInstruction.push({code: 'PUR', text: 'PAGO GENERA DESCUENTO'});
+
+
+                respuesta.data.tax.push({
+                    type: 'GST',
+                    taxPercentage: '0.00',
+                    taxAmount: json_tax.ieps_total || 0,
+                    taxCategory: 'TRANSFERIDO',
+                });
+                respuesta.data.tax.push({
+                    type: 'VAT',
+                    taxPercentage: rate_iva_total,
+                    taxAmount: json_tax.iva_total || 0,
+                    taxCategory: 'TRANSFERIDO',
+                });
+
+
+                respuesta.data.totalAmount = LookupField['total'] || '';
+                respuesta.data.baseAmount = LookupField['total'] || '';
+                respuesta.data.payableAmount = LookupField['total'] || '';
+
+
+                respuesta.data.alternatePartyIdentification = LookupField['customer.custentity_efx_cf_idproveedor'] || '';
+                respuesta.data.sellergln = LookupField['customer.custentity_efx_cf_sellergln'] || '';
+                respuesta.data.glnInvoiceCreator = LookupField['customer.custentity_efx_cf_sellergln'] || '';
+
+                //respuesta.data.tradeIdentification = LookupField['customer.custentity_efx_cf_tradeidentification'] || '';
+
+                respuesta.data.glnShipTo = LookupField['billingaddress.custrecord_efx_fe_lugar_gln'] || '';
+                respuesta.data.glnShipTo_envio = LookupField['shippingaddress.custrecord_efx_fe_lugar_gln'] || '';
+
+
+                if (LookupField['shippingaddress.custrecord_efx_fe_buyer_gln']) {
+                    respuesta.data.buyergln = LookupField['shippingaddress.custrecord_efx_fe_buyer_gln'] || '';
+                } else {
+                    respuesta.data.buyergln = LookupField['customer.custentity_efx_cf_buyergln'] || '';
+                }
+
+                respuesta.data.orderIdentificationreferenceIdentification = LookupField['otherrefnum'] || '';
+                respuesta.data.personOrDepartmentName = LookupField['customer.custentity_efx_cf_buyerperson'] || '';
+
+                respuesta.data.nameShipTo = LookupField['billingaddress.addressee'] || '';
+                respuesta.data.streetAddressOneShipTo = LookupField['billingaddress.custrecord_streetname'] || '' + LookupField['billingaddress.custrecord_streetnum'] || '';
+                respuesta.data.cityShipTo = LookupField['billingaddress.city'] || '';
+                respuesta.data.postalCodeShipTo = LookupField['billingaddress.zip'] || '';
+                respuesta.data.colonia = LookupField['billingaddress.custrecord_colonia'] || '';
+                respuesta.data.municipio = LookupField['billingaddress.custrecord_village'] || '';
+                respuesta.data.estado = LookupField['billingaddress.state'] || '';
+                if (LookupField['billingaddress.country']) {
+                    respuesta.data.pais = LookupField['billingaddress.country'][0].text || '';
+                }
+
+                respuesta.data.nameShipTo_envio = LookupField['shippingaddress.custrecord_efx_fe_lugar_city'] || '';
+                respuesta.data.streetAddressOneShipTo_envio = LookupField['shippingaddress.custrecord_streetname'] || '' + LookupField['shippingaddress.custrecord_streetnum'] || '';
+                respuesta.data.cityShipTo_envio = LookupField['shippingaddress.city'] || '';
+                respuesta.data.postalCodeShipTo_envio = LookupField['shippingaddress.zip'] || '';
+                respuesta.data.colonia_envio = LookupField['shippingaddress.custrecord_colonia'] || '';
+                respuesta.data.municipio_envio = LookupField['shippingaddress.custrecord_village'] || '';
+                respuesta.data.estado_envio = LookupField['shippingaddress.state'] || '';
+                if (LookupField['billingaddress.country']) {
+                    respuesta.data.pais_envio = LookupField['shippingaddress.country'][0].text || '';
+                }
+
+                var objParametro = {
+                    id: param_id,
+                    type: param_type,
+                    sublist: 'item',
+                    bodyFieldValue: [
+                        'discounttotal'
+                    ],
+                    bodyFieldText: [],
+                    lineField: [
+                        'itemtype',
+                        'item',
+                        'itemTEXT',
+                        'quantity',
+                        'rate',
+                        'custcol_efx_fe_upc_code',
+                        'amount',
+                        'grossamt',
+                        'custitem_efx_cf_tradeidentification',
+                    ],
+                };
+
+                var transactionField = getTransactionField(objParametro);
+                if (transactionField.succes) {
+                    var descuento_total_lineas = 0;
+                    for (var ir in transactionField.data.lineField) {
+                        //buscar descuentos
+                        var descuento_linea = 0;
+                        var linea_disc = parseInt(ir) + 1;
+                        var tamano_linefield = Object.keys(transactionField.data.lineField).length;
+                        log.audit({ title: 'linea_disc', details: linea_disc });
+                        log.audit({ title: 'tamano_linefield', details: tamano_linefield });
+                        if (linea_disc < tamano_linefield) {
+                            if (transactionField.data.lineField[linea_disc].itemtype == 'Discount') {
+                                descuento_linea = transactionField.data.lineField[ir].amount;
+                                if (descuento_linea < 0) {
+                                    descuento_linea = descuento_linea * (-1);
+                                }
+                            }
+                        }
+                        //fin de buscar descuentos
+                        if (
+                            transactionField.data.lineField[ir].itemtype == 'InvtPart' ||
+                            transactionField.data.lineField[ir].itemtype == 'Service' ||
+                            transactionField.data.lineField[ir].itemtype == 'Kit' ||
+                            transactionField.data.lineField[ir].itemtype == 'NonInvtPart' ||
+                            transactionField.data.lineField[ir].itemtype == 'Assembly' ||
+                            transactionField.data.lineField[ir].itemtype == 'Markup'
+                        ) {
+
+                            var rec_transaction = record.load({
+                                type: param_type,
+                                id: param_id,
+                                isDynamic: true,
+                            });
+
+                            var json_col = rec_transaction.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_efx_fe_tax_json',
+                                line: ir
+                            });
+
+                            var tradeidentification = rec_transaction.getSublistText({
+                                sublistId: 'item',
+                                fieldId: 'custitem_efx_cf_tradeidentification',
+                                line: ir
+                            });
+                            var json_tax_col = '';
+                            if (json_col) {
+                                json_tax_col = JSON.parse(json_col);
+                            }
+
+
+                            descuento_total_lineas = descuento_total_lineas + descuento_linea;
+                            respuesta.data.item.push({
+                                name: transactionField.data.lineField[ir].itemTEXT || '',
+                                sku: transactionField.data.lineField[ir].custcol_efx_fe_upc_code || '',
+                                tradeidentification: tradeidentification || '',
+                                rate: transactionField.data.lineField[ir].rate || '',
+                                quantity: transactionField.data.lineField[ir].quantity || '',
+                                netPrice: transactionField.data.lineField[ir].amount || '',
+                                discount: descuento_linea,
+                                taxPercentage: '0',
+                                taxAmount: '0',
+                                grossAmount: transactionField.data.lineField[ir].grossamt || '',
+                                netAmount: transactionField.data.lineField[ir].amount || '',
+                                iva_rate: (json_tax_col.iva.rate).toFixed(4) || 0,
+                                iva_importe: (json_tax_col.iva.importe) || 0,
+                                ieps_rate: (json_tax_col.ieps.rate).toFixed(4) || 0,
+                                ieps_importe: (json_tax_col.ieps.importe) || 0
+                            });
+                        }
+                    }
+                    if (transactionField.data.bodyFieldValue.discounttotal) {
+                        respuesta.data.descuentototal = transactionField.data.bodyFieldValue.discounttotal;
+                    } else {
+                        respuesta.data.descuentototal = descuento_total_lineas.toFixed(2);
+                    }
+                }
+
+                respuesta.succes = true;
+            } catch (error) {
+                log.error({ title: 'error getDataCityFresco', details: JSON.stringify(error) });
+                respuesta.succes = false;
+            }
+            log.audit({ title: 'respuesta getDataCityFresco', details: JSON.stringify(respuesta) });
+            return respuesta;
+        }
+
+        function getXmlComercialCityFresco(param_obj_CityFresco) {
+            var respuesta = {
+                succes: false,
+                data: '',
+                xmlns: '',
+            };
+            try {
+                respuesta.xmlns = ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ';
+
+                respuesta.xmlns += ' xsi:schemaLocation="http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv33.xsd" ';
+
+                var xmlCityFresco = '';
+                xmlCityFresco += '<cfdi:Addenda>';
+                xmlCityFresco += '    <requestForPayment';
+                xmlCityFresco += '        DeliveryDate="' + param_obj_CityFresco.DeliveryDate + '"';
+                xmlCityFresco += '        documentStatus="ORIGINAL"';
+                xmlCityFresco += '        documentStructureVersion="AMC7.1"';
+                xmlCityFresco += '        contentVersion="1.3.1"';
+                xmlCityFresco += '        type="SimpleInvoiceType">';
+                xmlCityFresco += '        <requestForPaymentIdentification>';
+                xmlCityFresco += '            <entityType>INVOICE</entityType>';
+                xmlCityFresco += '            <uniqueCreatorIdentification>' + param_obj_CityFresco.folio + '</uniqueCreatorIdentification>';
+                xmlCityFresco += '        </requestForPaymentIdentification>';
+
+                for (var i in param_obj_CityFresco.specialInstruction) {
+                    xmlCityFresco += '        <specialInstruction code="' + param_obj_CityFresco.specialInstruction[i].code + '">';
+                    xmlCityFresco += '            <text>' + param_obj_CityFresco.specialInstruction[i].text + '</text>';
+                    xmlCityFresco += '        </specialInstruction>';
+                }
+
+                xmlCityFresco += '        <orderIdentification>';
+                xmlCityFresco += '            <referenceIdentification type="ON">' + param_obj_CityFresco.orderIdentificationreferenceIdentification + '</referenceIdentification>';
+                xmlCityFresco += '            <ReferenceDate>' + param_obj_CityFresco.ReferenceDate + '</ReferenceDate>';
+                xmlCityFresco += '        </orderIdentification>';
+
+                xmlCityFresco += '        <AdditionalInformation>';
+                xmlCityFresco += '            <referenceIdentification type="ACE">' + param_obj_CityFresco.orderIdentificationreferenceIdentification + '</referenceIdentification>';
+                if (param_obj_CityFresco.cedis_envio) {
+                    xmlCityFresco += '            <referenceIdentification type="DQ">' + param_obj_CityFresco.folio_recibo + '</referenceIdentification>';
+                } else {
+                    xmlCityFresco += '            <referenceIdentification type="DQ">' + param_obj_CityFresco.folio_recibo + '</referenceIdentification>';
+                }
+                xmlCityFresco += '            <referenceIdentification type="ON">' + param_obj_CityFresco.orderIdentificationreferenceIdentification + '</referenceIdentification>';
+                xmlCityFresco += '            <referenceIdentification type="IV">' + param_obj_CityFresco.folio + '</referenceIdentification>';
+                xmlCityFresco += '        </AdditionalInformation>';
+
+                //comentar respecto a estos campos
+                if (param_obj_CityFresco.folio_recibo && param_obj_CityFresco.ReferenceDate) {
+                    xmlCityFresco += '        <DeliveryNote>';
+                    xmlCityFresco += '            <referenceIdentification>' + param_obj_CityFresco.folio_recibo + '</referenceIdentification>';
+                    xmlCityFresco += '            <ReferenceDate>' + param_obj_CityFresco.ReferenceDate + '</ReferenceDate>';
+                    xmlCityFresco += '        </DeliveryNote>';
+                }
+
+
+                xmlCityFresco += '        <buyer>';
+                xmlCityFresco += '            <gln>' + param_obj_CityFresco.buyergln + '</gln>';
+                xmlCityFresco += '            <contactInformation>';
+                xmlCityFresco += '                <personOrDepartmentName>';
+                xmlCityFresco += '                    <text>' + param_obj_CityFresco.personOrDepartmentName + '</text>';
+                xmlCityFresco += '                </personOrDepartmentName>';
+                xmlCityFresco += '            </contactInformation>';
+                xmlCityFresco += '        </buyer>';
+
+                xmlCityFresco += '        <seller>';
+                xmlCityFresco += '            <gln>' + param_obj_CityFresco.sellergln + '</gln>';
+                xmlCityFresco += '            <alternatePartyIdentification type="SELLER_ASSIGNED_IDENTIFIER_FOR_A_PARTY">' + param_obj_CityFresco.alternatePartyIdentification + '</alternatePartyIdentification>';
+                xmlCityFresco += '        </seller>';
+
+                xmlCityFresco += '        <shipTo>';
+                if (param_obj_CityFresco.glnShipTo_envio) {
+                    xmlCityFresco += '            <gln>' + param_obj_CityFresco.glnShipTo_envio + '</gln>';
+                } else {
+                    xmlCityFresco += '            <gln>' + param_obj_CityFresco.glnShipTo + '</gln>';
+                }
+                xmlCityFresco += '            <nameAndAddress>';
+                if (param_obj_CityFresco.nameShipTo_envio) {
+                    xmlCityFresco += '                <name>' + param_obj_CityFresco.nameShipTo_envio + '</name>';
+                } else {
+                    xmlCityFresco += '                <name>' + param_obj_CityFresco.nameShipTo + '</name>';
+                }
+                if (param_obj_CityFresco.streetAddressOneShipTo_envio) {
+                    xmlCityFresco += '                <streetAddressOne>' + param_obj_CityFresco.streetAddressOneShipTo_envio + '</streetAddressOne>';
+                } else {
+                    xmlCityFresco += '                <streetAddressOne>' + param_obj_CityFresco.streetAddressOneShipTo + '</streetAddressOne>';
+                }
+                if (param_obj_CityFresco.cityShipTo_envio) {
+                    xmlCityFresco += '                <city>' + param_obj_CityFresco.cityShipTo_envio + '</city>';
+                } else {
+                    xmlCityFresco += '                <city>' + param_obj_CityFresco.cityShipTo + '</city>';
+                }
+                if (param_obj_CityFresco.postalCodeShipTo_envio) {
+                    xmlCityFresco += '                <postalCode>' + param_obj_CityFresco.postalCodeShipTo_envio + '</postalCode>';
+                } else {
+                    xmlCityFresco += '                <postalCode>' + param_obj_CityFresco.postalCodeShipTo + '</postalCode>';
+                }
+                xmlCityFresco += '            </nameAndAddress>';
+                xmlCityFresco += '        </shipTo>';
+
+                xmlCityFresco += '        <InvoiceCreator>';
+                xmlCityFresco += '            <gln>' + param_obj_CityFresco.glnInvoiceCreator + '</gln>';
+                xmlCityFresco += '            <alternatePartyIdentification type="VA">' + param_obj_CityFresco.alternatePartyIdentificationInvoiceCreator + '</alternatePartyIdentification>';
+                xmlCityFresco += '            <nameAndAddress>';
+                xmlCityFresco += '                <name>' + param_obj_CityFresco.nameInvoiceCreator + '</name>';
+                xmlCityFresco += '                <streetAddressOne>' + param_obj_CityFresco.streetAddressOneInvoiceCreator + '</streetAddressOne>';
+                xmlCityFresco += '                <city>' + param_obj_CityFresco.cityInvoiceCreator + '</city>';
+                xmlCityFresco += '                <postalCode>' + param_obj_CityFresco.postalCodeInvoiceCreator + '</postalCode>';
+                xmlCityFresco += '            </nameAndAddress>';
+                xmlCityFresco += '        </InvoiceCreator>';
+
+                xmlCityFresco += '        <currency currencyISOCode="' + param_obj_CityFresco.currencyISOCode + '">';
+                xmlCityFresco += '            <currencyFunction>BILLING_CURRENCY</currencyFunction>';
+                xmlCityFresco += '            <rateOfChange>' + param_obj_CityFresco.rateOfChange + '</rateOfChange>';
+                xmlCityFresco += '        </currency>';
+
+                xmlCityFresco += '        <paymentTerms';
+                xmlCityFresco += '            paymentTermsEvent="DATE_OF_INVOICE"';
+                xmlCityFresco += '            PaymentTermsRelationTime="REFERENCE_AFTER">';
+                xmlCityFresco += '            <netPayment netPaymentTermsType="BASIC_NET">';
+                xmlCityFresco += '                <paymentTimePeriod>';
+                xmlCityFresco += '                    <timePeriodDue timePeriod="DAYS">';
+                if (param_obj_CityFresco.terminos) {
+                    var terminoscfk = (param_obj_CityFresco.terminos[0].text).split(' ');
+                    xmlCityFresco += '                        <value>' + terminoscfk[0] + '</value>';
+                } else {
+                    xmlCityFresco += '                        <value></value>';
+                }
+
+                xmlCityFresco += '                    </timePeriodDue>';
+                xmlCityFresco += '                </paymentTimePeriod>';
+                xmlCityFresco += '            </netPayment>';
+                xmlCityFresco += '        </paymentTerms>';
+
+                xmlCityFresco += '        <allowanceCharge';
+                xmlCityFresco += '            settlementType="BILL_BACK"';
+                xmlCityFresco += '            allowanceChargeType="ALLOWANCE_GLOBAL">';
+                xmlCityFresco += '            <specialServicesType>AJ</specialServicesType>';
+                xmlCityFresco += '            <monetaryAmountOrPercentage>';
+                xmlCityFresco += '                <rate base="INVOICE_VALUE">';
+                xmlCityFresco += '                    <percentage>' + param_obj_CityFresco.monetaryAmountOrPercentage + '</percentage>';
+                xmlCityFresco += '                </rate>';
+                xmlCityFresco += '            </monetaryAmountOrPercentage>';
+                xmlCityFresco += '        </allowanceCharge>';
+
+                var itemNum = 0;
+                for (var itemi in param_obj_CityFresco.item) {
+                    itemNum++;
+                    xmlCityFresco += '        <lineItem type="SimpleInvoiceLineItemType" number="' + itemNum + '">';
+                    xmlCityFresco += '            <tradeItemIdentification>';
+                    xmlCityFresco += '                <gtin>' + param_obj_CityFresco.item[itemi].sku + '</gtin>';
+                    xmlCityFresco += '            </tradeItemIdentification>';
+                    xmlCityFresco += '            <alternateTradeItemIdentification type="' + param_obj_CityFresco.item[itemi].tradeidentification + '">' + param_obj_CityFresco.item[itemi].sku + '</alternateTradeItemIdentification>';
+
+                    xmlCityFresco += '            <tradeItemDescriptionInformation language="ES">';
+                    xmlCityFresco += '                <longText>' + xml.escape({ xmlText: param_obj_CityFresco.item[itemi].name }) + '</longText>';
+                    xmlCityFresco += '            </tradeItemDescriptionInformation>';
+                    if (param_obj_CityFresco.item[itemi].tradeidentification == 'BUYER_ASSIGNED') {
+                        xmlCityFresco += '            <invoicedQuantity unitOfMeasure="PZA">' + param_obj_CityFresco.item[itemi].quantity + '.000</invoicedQuantity>';
+
+                    } else {
+                        xmlCityFresco += '            <invoicedQuantity unitOfMeasure="CA">' + param_obj_CityFresco.item[itemi].quantity + '.000</invoicedQuantity>';
+                        xmlCityFresco += '            <aditionalQuantity QuantityType="NUM_CONSUMER_UNITS">' + param_obj_CityFresco.item[itemi].quantity + '</aditionalQuantity>';
+                    }
+
+                    xmlCityFresco += '            <grossPrice>';
+                    xmlCityFresco += '                <Amount>' + param_obj_CityFresco.item[itemi].rate + '</Amount>';
+                    xmlCityFresco += '            </grossPrice>';
+                    xmlCityFresco += '            <netPrice>';
+                    xmlCityFresco += '                <Amount>' + param_obj_CityFresco.item[itemi].rate + '</Amount>';
+                    xmlCityFresco += '            </netPrice>';
+                    xmlCityFresco += '            <AdditionalInformation>';
+                    xmlCityFresco += '                <referenceIdentification type="ON">' + param_obj_CityFresco.orderIdentificationreferenceIdentification + '</referenceIdentification>';
+                    xmlCityFresco += '            </AdditionalInformation>';
+                    xmlCityFresco += '            <tradeItemTaxInformation>';
+                    xmlCityFresco += '                <taxTypeDescription>VAT</taxTypeDescription>';
+                    xmlCityFresco += '                <referenceNumber>IVA</referenceNumber>';
+                    xmlCityFresco += '                <tradeItemTaxAmount>';
+                    xmlCityFresco += '                    <taxPercentage>' + param_obj_CityFresco.item[itemi].iva_rate + '</taxPercentage>';
+                    xmlCityFresco += '                    <taxAmount>' + param_obj_CityFresco.item[itemi].iva_importe + '</taxAmount>';
+                    xmlCityFresco += '                </tradeItemTaxAmount>';
+                    xmlCityFresco += '                <taxCategory>TRANSFERIDO</taxCategory>';
+                    xmlCityFresco += '            </tradeItemTaxInformation>';
+                    xmlCityFresco += '            <tradeItemTaxInformation>';
+                    xmlCityFresco += '                <taxTypeDescription>GST</taxTypeDescription>';
+                    xmlCityFresco += '                <referenceNumber>IEPS</referenceNumber>';
+                    xmlCityFresco += '                <tradeItemTaxAmount>';
+                    xmlCityFresco += '                    <taxPercentage>' + param_obj_CityFresco.item[itemi].ieps_rate + '</taxPercentage>';
+                    xmlCityFresco += '                    <taxAmount>' + param_obj_CityFresco.item[itemi].ieps_importe + '</taxAmount>';
+                    xmlCityFresco += '                </tradeItemTaxAmount>';
+                    xmlCityFresco += '                <taxCategory>TRANSFERIDO</taxCategory>';
+                    xmlCityFresco += '            </tradeItemTaxInformation>';
+                    xmlCityFresco += '            <totalLineAmount>';
+                    xmlCityFresco += '                <grossAmount>';
+                    xmlCityFresco += '                    <Amount>' + param_obj_CityFresco.item[itemi].grossAmount + '</Amount>';
+                    xmlCityFresco += '                </grossAmount>';
+                    xmlCityFresco += '                <netAmount>';
+                    xmlCityFresco += '                    <Amount>' + param_obj_CityFresco.item[itemi].netAmount + '</Amount>';
+                    xmlCityFresco += '                </netAmount>';
+                    xmlCityFresco += '            </totalLineAmount>';
+                    xmlCityFresco += '        </lineItem>';
+                }
+
+                xmlCityFresco += '        <totalAmount>';
+                xmlCityFresco += '            <Amount>' + param_obj_CityFresco.totalAmount + '</Amount>';
+                xmlCityFresco += '        </totalAmount>';
+                if (param_obj_CityFresco.item[itemi].tradeidentification == 'BUYER_ASSIGNED') {
+                    xmlCityFresco += '        <TotalAllowanceCharge allowanceOrChargeType="ALLOWANCE">';
+                    xmlCityFresco += '            <Amount>' + 0.00 + '</Amount>';
+                    xmlCityFresco += '        </TotalAllowanceCharge>';
+                } else { }
+                xmlCityFresco += '        <baseAmount>';
+                xmlCityFresco += '            <Amount>' + param_obj_CityFresco.baseAmount + '</Amount>';
+                xmlCityFresco += '        </baseAmount>';
+
+                for (var taxi in param_obj_CityFresco.tax) {
+                    xmlCityFresco += '        <tax type="' + param_obj_CityFresco.tax[taxi].type + '">';
+                    xmlCityFresco += '            <taxPercentage>' + param_obj_CityFresco.tax[taxi].taxPercentage + '</taxPercentage>';
+                    xmlCityFresco += '            <taxAmount>' + param_obj_CityFresco.tax[taxi].taxAmount + '</taxAmount>';
+                    xmlCityFresco += '            <taxCategory>' + param_obj_CityFresco.tax[taxi].taxCategory + '</taxCategory>';
+                    xmlCityFresco += '        </tax>';
+                }
+
+                xmlCityFresco += '        <payableAmount>';
+                xmlCityFresco += '            <Amount>' + param_obj_CityFresco.payableAmount + '</Amount>';
+                xmlCityFresco += '        </payableAmount>';
+
+                xmlCityFresco += '    </requestForPayment>';
+                xmlCityFresco += '</cfdi:Addenda>';
+                respuesta.data = JSON.stringify(param_obj_CityFresco);
+                respuesta.succes = true;
+
+            } catch (error) {
+                log.error({ title: 'error getXmlCityFresco', details: JSON.stringify(error) });
+                respuesta.succes = false;
+            }
+            log.audit({ title: 'respuesta getXmlCityFresco', details: JSON.stringify(respuesta) });
+            return respuesta;
         }
 
         return { getDataSabritas, getxmlSabritas, fechaSplit, getDataHDepot, getXmlHDepot, getAdendaContents, createFileOfAdenda, getAdendaXML, submitFields2Transaction, regenerateAdendaXML }
