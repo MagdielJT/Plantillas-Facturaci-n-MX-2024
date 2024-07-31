@@ -434,8 +434,9 @@ define(['N/log', 'N/record', 'N/search', 'N/currency', 'N/config', 'N/runtime', 
                                         log.audit({ title: 'dataArticle 👻👻👻', details: dataArticle });
                                         record.setSublistValue({
                                             sublistId: 'item',
-                                            fieldId: 'custcol_efx_fe_ce_farancel_code',
-                                            text: dataArticle.fraccionArancelariaCE,
+                                            fieldId: 'custcol_efx_fe_ce_frac_arancelaria',
+                                            // fieldId: 'custcol_efx_fe_ce_farancel_code',
+                                            value: dataArticle.fraccionArancelariaCE,
                                             line: l
                                         });
                                         record.setSublistValue({

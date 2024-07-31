@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cfdi:Addenda>
+    <fa:Datos xmlns:fa="finanzas">
+        <fa:AddendaComercial>
+            <#list transaction.item as item>
+            <fa:Finanzas PO="801203" Linea="48" Part="01-7-065" Moneda="MXN"/>
+        </#list>
+
+    </fa:AddendaComercial>
+</fa:Datos>
+</cfdi:Addenda>

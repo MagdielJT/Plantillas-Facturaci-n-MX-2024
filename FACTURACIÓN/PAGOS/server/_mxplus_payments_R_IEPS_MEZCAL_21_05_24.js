@@ -240,7 +240,6 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
                     break
                   case 'ISR':
                     break
-
                   default:
                     break
                 }
@@ -454,7 +453,8 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
         //   Object.values(taxPieps).forEach(taxIeps => pago[PAGO.ImpuestosP][PAGO.TrasladosP].push(taxIeps))
         // }
         arrPagos.push(pago)
-        if (receFactoraje[FACTORAJE.CHECK_FAC].value == true) {
+        if (
+          receFactoraje[FACTORAJE.CHECK_FAC].value == true) {
           // Factoraje
           let sumBasep = 0
           let sumImp = 0

@@ -82,11 +82,11 @@
                             <#if subsidiary?has_content>
                                 <#if subsidiary.logo?has_content> 
                                     <#assign "urldir" = subsidiary.logo@url>
-                                    <img width="140" height="70" src="${urldir}"/>
+                                    <img width="100" height="70" src="${urldir}"/>
                                 </#if>|
                             <#elseif companyInformation.formlogo?has_content>
                                 <#assign "urldir" = companyInformation.logoUrl>
-                                 <img width="140" height="70" src="${urldir}"/>
+                                 <img width="100" height="70" src="${urldir}"/>
                             </#if>
                         </td>
 
@@ -105,7 +105,7 @@
 
                         </td>
                         <td colspan="1">&nbsp;</td>
-                        <td colspan="4" style="font-size: 10px;" align="right"><span style="font-size: 20px; color:#14B6C6"><strong>FACTURA</strong></span><br/>
+                        <td colspan="4" style="font-size: 10px;" align="right"><span style="font-size: 20px; color:rgb(0, 122, 185)"><strong>FACTURA</strong></span><br/>
                             <#if dataXML?has_content>
                                 <#assign folio_tran = "">
                               <#if dataXML.atributos.Serie?has_content>
@@ -185,12 +185,13 @@
             }
 
             td.cabecera, th.cabecera {
-                color: #000000;
-                font-size: 8pt;
-                background-color: #80BFFF;
+                color: #FFFFFF;
+                font-weight: bold;
+                font-size: 9pt;
+                background-color: rgb(0, 122, 185);
                 padding: 2px;
             }
-
+                <#--  background-color: #80BFFF;  -->
             td {
                 padding: 4px 6px;
             }
@@ -217,6 +218,10 @@
             table.itemtable th {
                 padding-bottom: 10px;
                 padding-top: 10px;
+                color: #FFFFFF;
+                font-weight: bold;
+                font-size: 8pt;
+                background-color: rgb(0, 122, 185);
             }
 
             table.desglose td {
@@ -348,11 +353,11 @@
                 <tr>
                     <td colspan="14" rowspan="2"
                         style="border: 1px; border-color: #e3e3e3; font-size:9px;">${dataXML.Receptor.atributos.Nombre}
-                        <#if dataXML?has_content>
+                        <#--  <#if dataXML?has_content>
                             <#assign uso_cfdi = dataXML.Receptor.atributos.UsoCFDI>
                         <#else>
                             <#assign uso_cfdi = record.custbody_mx_cfdi_usage?keep_before(" ")>
-                        </#if>
+                        </#if>  -->
                         <br/><br/><b>RFC:</b> <#outputformat "XML">${dataXML.Receptor.atributos.Rfc}</#outputformat><br/>
                         <#if record.entity.custentity_mx_sat_industry_type?has_content>
                             <br /><b>Régimen Fiscalx:</b> ${record.entity.custentity_mx_sat_industry_type?upper_case}
@@ -396,24 +401,24 @@
         <#else>
             <table style="width: 100%; margin-top: 10px;">
                 <tr>
-                    <td class="body" colspan="14" style="background-color: #80BFFF; font-size:9px;"><b>Cliente</b></td>
+                    <td class="cabecera" colspan="14">Cliente</td>
                     <td></td>
-                    <td class="body" colspan="14" style="background-color: #80BFFF; font-size:9px"><b>Emisor</b></td>
+                    <td class="cabecera" colspan="14">Emisor</td>
                 </tr>
                 <tr>
-                    <td colspan="14" rowspan="2"
-                        style="border: 1px; border-color: #e3e3e3; font-size:9px;">${dataXML.Receptor.atributos.Nombre}
-                        <#if dataXML?has_content>
+                    <td colspan="14" rowspan="2" style="border: 1px; border-color: #e3e3e3; font-size:9px;">
+                        ${dataXML.Receptor.atributos.Nombre}
+                        <#--  <#if dataXML?has_content>
                             <#assign uso_cfdi = dataXML.Receptor.atributos.UsoCFDI>
                         <#else>
                             <#assign uso_cfdi = record.custbody_mx_cfdi_usage?keep_before(" ")>
-                        </#if>
+                        </#if>  -->
                         <br/><br/><b>RFC:</b> <#outputformat "XML">${dataXML.Receptor.atributos.Rfc}</#outputformat><br/>
                         <#if record.entity.custentity_mx_sat_industry_type?has_content>
-                          <br /><b>Régimen Fiscal:</b> ${record.entity.custentity_mx_sat_industry_type?upper_case}
+                            <br /><b>Régimen Fiscal:</b> ${record.entity.custentity_mx_sat_industry_type?upper_case}
                         </#if>
-                          <br/><br/><b>Domicilio Fiscal:</b> ${record.billaddress?replace("<br />",  " ")?upper_case}
-                          <br/><br/><b>Uso del CFDI:</b>
+                            <br/><br/><b>Domicilio Fiscal:</b> ${record.billaddress?replace("<br />",  " ")?upper_case}
+                            <#--  <br/><br/><b>Uso del CFDI:</b>
                             <#if uso_cfdi == "D01"> D01 - HONORARIOS MÉDICOS, DENTALES Y GASTOS HOSPITALARIOS
                             <#elseif uso_cfdi == "D02"> D02 - GASTOS MÉDICOS POR INCAPACIDAD O DISCAPACIDAD
                             <#elseif uso_cfdi == "D03"> D03 - GASTOS FUNERALES
@@ -440,34 +445,31 @@
                             <#elseif uso_cfdi == "CN01"> CN01 - NÓMINA
                             <#elseif uso_cfdi == "CP01"> CP01 - PAGOS
                             <#else>
-                            </#if>
+                            </#if>  -->
                         </td>
                     <td></td>
-
                     <td colspan="14" rowspan="2" style="border: 1px; border-color: #e3e3e3; font-size:9px;">
                         <#if subsidiary?has_content>    
                             <#if subsidiary.custrecord_mx_sat_registered_name?has_content>
                                 ${subsidiary.custrecord_mx_sat_registered_name?upper_case}
                                 <br/><br/><b>RFC:</b> 
                                 <#if dataXML?has_content>
-                                  ${dataXML.Emisor.atributos.Rfc}
+                                    ${dataXML.Emisor.atributos.Rfc}
                                 <#else>
-                                  ${subsidiary.federalidnumber}
+                                    ${subsidiary.federalidnumber}
                                 </#if>
                             </#if>
                         <#else>
-                          ${companyInformation.legalname?upper_case?keep_before(",")}
-                          <#if dataXML?has_content>
-                            <br/><br/><b>RFC:</b> ${dataXML.Emisor.atributos.Rfc}
-                          <#else>
-                            <br/><br/><b>RFC:</b> ${companyInformation.employerid}
-                          </#if>
+                            ${companyInformation.legalname?upper_case?keep_before(",")}
+                            <#if dataXML?has_content>
+                                <br/><br/><b>RFC:</b> ${dataXML.Emisor.atributos.Rfc}
+                            <#else>
+                                <br/><br/><b>RFC:</b> ${companyInformation.employerid}
+                            </#if>
                         </#if>
-                        
                         <br/><br/><b>Régimen Fiscal:</b> ${infoEmpresa.custrecord_mx_sat_industry_type?upper_case}
-                
-                        </td>
-
+                        <br/><br/><b>Dirección de Entrega:</b> ${record.shipaddress?replace("<br />",  " ")?upper_case}
+                    </td>
                 </tr>
             </table>
         </#if>
@@ -482,18 +484,18 @@
                 <tr>
                     <td colspan="14" rowspan="2"
                         style="border: 1px; border-color: #e3e3e3; font-size:9px;">${record.custbody_efx_fe_kiosko_name}
-                        <#if dataXML?has_content>
+                        <#--  <#if dataXML?has_content>
                             <#assign uso_cfdi = dataXML.Receptor.atributos.UsoCFDI>
                         <#else>
                             <#assign uso_cfdi = record.custbody_mx_cfdi_usage?keep_before(" ")>
-                        </#if>
+                        </#if>  -->
                         <br/><br/><b>RFC:</b> <#outputformat "XML">${record.custbody_efx_fe_kiosko_rfc?upper_case}</#outputformat>
                         <br/>
                         <#if record.entity.custentity_mx_sat_industry_type?has_content>
                                 <br /><b>Régimen Fiscal:</b> ${record.entity.custentity_mx_sat_industry_type?upper_case}
                             </#if>
-                          <br/><br/><b>Domicilio Fiscal:</b> ${record.billaddress?replace("<br />",  " ")?upper_case}
-                          <br/><br/><b>Uso del CFDI:</b>
+                            <br/><br/><b>Domicilio Fiscal:</b> ${record.billaddress?replace("<br />",  " ")?upper_case}
+                            <#--  <br/><br/><b>Uso del CFDI:</b>
                             <#if uso_cfdi == "D01"> D01 - HONORARIOS MÉDICOS, DENTALES Y GASTOS HOSPITALARIOS
                             <#elseif uso_cfdi == "D02"> D02 - GASTOS MÉDICOS POR INCAPACIDAD O DISCAPACIDAD
                             <#elseif uso_cfdi == "D03"> D03 - GASTOS FUNERALES
@@ -520,10 +522,9 @@
                             <#elseif uso_cfdi == "CN01"> CN01 - NÓMINA
                             <#elseif uso_cfdi == "CP01"> CP01 - PAGOS
                             <#else>
-                            </#if>
+                            </#if>  -->
                         </td>
                     <td></td>
-                          
                     <td colspan="14" rowspan="2" style="border: 1px; border-color: #e3e3e3; font-size:9px;">
                         <#if subsidiary?has_content>    
                             <#if subsidiary.custrecord_mx_sat_registered_name?has_content>
@@ -536,8 +537,7 @@
                         </#if>
                         
                         <br/><br/><b>Régimen Fiscal Emisor:</b> ${infoEmpresa.custrecord_mx_sat_industry_type?upper_case}
-                
-                        </td>
+                    </td>
                     <td></td>
                         
                     
@@ -546,97 +546,96 @@
         <#else>
             <table style="width: 100%; margin-top: 10px;">
                 <tr>
-                    <td class="body" colspan="14" style="background-color: #80BFFF; font-size:9px;"><b>Cliente</b></td>
+                    <td class="cabecera" colspan="14">Cliente</td>
                     <td></td>
-                    <td class="body" colspan="14" style="background-color: #80BFFF; font-size:9px"><b>Emisor</b></td>
+                    <td class="cabecera" colspan="14">Emisor</td>
                 </tr>
                 <tr>
-                <#if record.entity.custentity_mx_sat_registered_name?has_content>
-                    <td colspan="14" rowspan="2"
-                        style="border: 1px; border-color: #e3e3e3; font-size:9px;">${record.entity.custentity_mx_sat_registered_name}<br/><br/><b>RFC:</b> <#outputformat "XML">${record.custbody_mx_customer_rfc?upper_case}</#outputformat>
-                        <#if dataXML?has_content>
-                            <#assign uso_cfdi = dataXML.Receptor.atributos.UsoCFDI>
-                        <#else>
-                            <#assign uso_cfdi = record.custbody_mx_cfdi_usage?keep_before(" ")>
-                        </#if>
-                        <br/>
-                        <#if record.entity.custentity_mx_sat_industry_type?has_content>
-                            <br /><b>Régimen Fiscal:</b> ${record.entity.custentity_mx_sat_industry_type?upper_case}
-                        </#if>
-                        <br/><br/><b>Domicilio Fiscal:</b> ${record.billaddress?replace("<br />",  " ")?upper_case}
-                        <br/><br/><b>Uso del CFDI:</b>
-                            <#if uso_cfdi == "D01"> D01 - HONORARIOS MÉDICOS, DENTALES Y GASTOS HOSPITALARIOS
-                            <#elseif uso_cfdi == "D02"> D02 - GASTOS MÉDICOS POR INCAPACIDAD O DISCAPACIDAD
-                            <#elseif uso_cfdi == "D03"> D03 - GASTOS FUNERALES
-                            <#elseif uso_cfdi == "D04"> D04 - DONATIVOS
-                            <#elseif uso_cfdi == "D05"> D05 - INTERESES REALES EFECTIVAMENTE PAGADOS POR CRÉDITOS HIPOTECARIOS (CASA HABITACIÓN)
-                            <#elseif uso_cfdi == "D06"> D06 - APORTACIONES VOLUNTARIAS AL SAR
-                            <#elseif uso_cfdi == "D07"> D07 - PRIMAS POR SEGUROS DE GASTOS MÉDICOS
-                            <#elseif uso_cfdi == "D08"> D08 - GASTOS DE TRANSPORTACIÓN ESCOLAR OBLIGATORIA
-                            <#elseif uso_cfdi == "D09"> D09 - DEPÓSITOS EN CUENTAS PARA EL AHORRO, PRIMAS QUE TENGAN COMO BASE PLANES DE PENSIONES
-                            <#elseif uso_cfdi == "D10"> D10 - PAGOS POR SERVICIOS EDUCATIVOS (COLEGIATURAS)
-                            <#elseif uso_cfdi == "G01"> G01 - ADQUISICIÓN DE MERCANCÍAS
-                            <#elseif uso_cfdi == "G02"> G02 - DEVOLUCIONES, DESCUENTOS O BONIFICACIONES
-                            <#elseif uso_cfdi == "G03"> G03 - GASTOS EN GENERAL
-                            <#elseif uso_cfdi == "I01"> 01 - CONSTRUCCIONES
-                            <#elseif uso_cfdi == "I02"> I02 - MOBILIARIO Y EQUIPO DE OFICINA POR INVERSIONES
-                            <#elseif uso_cfdi == "I03"> I03 - EQUIPO DE TRANSPORTE
-                            <#elseif uso_cfdi == "I04"> I04 - EQUIPO DE CÓMPUTO Y ACCESORIOS
-                            <#elseif uso_cfdi == "I05"> I05 - DADOS, TROQUELES, MOLDES, MATRICES Y HERRAMENTAL
-                            <#elseif uso_cfdi == "I06"> I06 - COMUNICACIONES TELEFÓNICAS
-                            <#elseif uso_cfdi == "I07"> I07 - COMUNICACIONES SATELITALES
-                            <#elseif uso_cfdi == "I08"> I08 - OTRA MAQUINARIA Y EQUIPO
-                            <#elseif uso_cfdi == "P01"> P01 - POR DEFINIR
-                            <#elseif uso_cfdi == "S01"> S01 - SIN EFECTOS FISCALES
-                            <#elseif uso_cfdi == "CN01"> CN01 - NÓMINA
-                            <#elseif uso_cfdi == "CP01"> CP01 - PAGOS
+                    <#if record.entity.custentity_mx_sat_registered_name?has_content>
+                        <td colspan="14" rowspan="2"
+                            style="border: 1px; border-color: #e3e3e3; font-size:9px;">${record.entity.custentity_mx_sat_registered_name}<br/><br/><b>RFC:</b> <#outputformat "XML">${record.custbody_mx_customer_rfc?upper_case}</#outputformat>
+                            <#--  <#if dataXML?has_content>
+                                <#assign uso_cfdi = dataXML.Receptor.atributos.UsoCFDI>
                             <#else>
+                                <#assign uso_cfdi = record.custbody_mx_cfdi_usage?keep_before(" ")>
+                            </#if>  -->
+                            <br/>
+                            <#if record.entity.custentity_mx_sat_industry_type?has_content>
+                                <br /><b>Régimen Fiscal:</b> ${record.entity.custentity_mx_sat_industry_type?upper_case}
                             </#if>
-                    </td>
-                <#else>
-                    <td colspan="14" rowspan="2" style="border: 1px; border-color: #e3e3e3; font-size:9px;"><#if record.entity.altname?has_content>${record.entity.altname}<#elseif record.entity.companyname?has_content><#else>${record.entity.firstname} ${record.entity.lastname}</#if><br/><br/><b>RFC:</b> <#outputformat "XML">${record.custbody_mx_customer_rfc?upper_case}</#outputformat>
-                        <#if dataXML?has_content>
-                            <#assign uso_cfdi = dataXML.Receptor.atributos.UsoCFDI>
-                        <#else>
-                            <#assign uso_cfdi = record.custbody_mx_cfdi_usage?keep_before(" ")>
-                        </#if>
-                        <br/>
-                        <#if record.entity.custentity_mx_sat_industry_type?has_content>
-                            <br /><b>Régimen Fiscal:</b> ${record.entity.custentity_mx_sat_industry_type?upper_case}
-                        </#if>
-                        <br/><br/><b>Domicilio Fiscal:</b> ${record.billaddress?replace("<br />",  " ")?upper_case}
-                        <br/><br/><b>Uso del CFDI:</b>
-                            <#if uso_cfdi == "D01"> D01 - HONORARIOS MÉDICOS, DENTALES Y GASTOS HOSPITALARIOS
-                            <#elseif uso_cfdi == "D02"> D02 - GASTOS MÉDICOS POR INCAPACIDAD O DISCAPACIDAD
-                            <#elseif uso_cfdi == "D03"> D03 - GASTOS FUNERALES
-                            <#elseif uso_cfdi == "D04"> D04 - DONATIVOS
-                            <#elseif uso_cfdi == "D05"> D05 - INTERESES REALES EFECTIVAMENTE PAGADOS POR CRÉDITOS HIPOTECARIOS (CASA HABITACIÓN)
-                            <#elseif uso_cfdi == "D06"> D06 - APORTACIONES VOLUNTARIAS AL SAR
-                            <#elseif uso_cfdi == "D07"> D07 - PRIMAS POR SEGUROS DE GASTOS MÉDICOS
-                            <#elseif uso_cfdi == "D08"> D08 - GASTOS DE TRANSPORTACIÓN ESCOLAR OBLIGATORIA
-                            <#elseif uso_cfdi == "D09"> D09 - DEPÓSITOS EN CUENTAS PARA EL AHORRO, PRIMAS QUE TENGAN COMO BASE PLANES DE PENSIONES
-                            <#elseif uso_cfdi == "D10"> D10 - PAGOS POR SERVICIOS EDUCATIVOS (COLEGIATURAS)
-                            <#elseif uso_cfdi == "G01"> G01 - ADQUISICIÓN DE MERCANCÍAS
-                            <#elseif uso_cfdi == "G02"> G02 - DEVOLUCIONES, DESCUENTOS O BONIFICACIONES
-                            <#elseif uso_cfdi == "G03"> G03 - GASTOS EN GENERAL
-                            <#elseif uso_cfdi == "I01"> 01 - CONSTRUCCIONES
-                            <#elseif uso_cfdi == "I02"> I02 - MOBILIARIO Y EQUIPO DE OFICINA POR INVERSIONES
-                            <#elseif uso_cfdi == "I03"> I03 - EQUIPO DE TRANSPORTE
-                            <#elseif uso_cfdi == "I04"> I04 - EQUIPO DE CÓMPUTO Y ACCESORIOS
-                            <#elseif uso_cfdi == "I05"> I05 - DADOS, TROQUELES, MOLDES, MATRICES Y HERRAMENTAL
-                            <#elseif uso_cfdi == "I06"> I06 - COMUNICACIONES TELEFÓNICAS
-                            <#elseif uso_cfdi == "I07"> I07 - COMUNICACIONES SATELITALES
-                            <#elseif uso_cfdi == "I08"> I08 - OTRA MAQUINARIA Y EQUIPO
-                            <#elseif uso_cfdi == "P01"> P01 - POR DEFINIR
-                            <#elseif uso_cfdi == "S01"> S01 - SIN EFECTOS FISCALES
-                            <#elseif uso_cfdi == "CN01"> CN01 - NÓMINA
-                            <#elseif uso_cfdi == "CP01"> CP01 - PAGOS
-                            <#else>
-                            </#if>
+                            <br/><br/><b>Domicilio Fiscal:</b> ${record.billaddress?replace("<br />",  " ")?upper_case}
+                            <#--  <br/><br/><b>Uso del CFDI:</b>
+                                <#if uso_cfdi == "D01"> D01 - HONORARIOS MÉDICOS, DENTALES Y GASTOS HOSPITALARIOS
+                                <#elseif uso_cfdi == "D02"> D02 - GASTOS MÉDICOS POR INCAPACIDAD O DISCAPACIDAD
+                                <#elseif uso_cfdi == "D03"> D03 - GASTOS FUNERALES
+                                <#elseif uso_cfdi == "D04"> D04 - DONATIVOS
+                                <#elseif uso_cfdi == "D05"> D05 - INTERESES REALES EFECTIVAMENTE PAGADOS POR CRÉDITOS HIPOTECARIOS (CASA HABITACIÓN)
+                                <#elseif uso_cfdi == "D06"> D06 - APORTACIONES VOLUNTARIAS AL SAR
+                                <#elseif uso_cfdi == "D07"> D07 - PRIMAS POR SEGUROS DE GASTOS MÉDICOS
+                                <#elseif uso_cfdi == "D08"> D08 - GASTOS DE TRANSPORTACIÓN ESCOLAR OBLIGATORIA
+                                <#elseif uso_cfdi == "D09"> D09 - DEPÓSITOS EN CUENTAS PARA EL AHORRO, PRIMAS QUE TENGAN COMO BASE PLANES DE PENSIONES
+                                <#elseif uso_cfdi == "D10"> D10 - PAGOS POR SERVICIOS EDUCATIVOS (COLEGIATURAS)
+                                <#elseif uso_cfdi == "G01"> G01 - ADQUISICIÓN DE MERCANCÍAS
+                                <#elseif uso_cfdi == "G02"> G02 - DEVOLUCIONES, DESCUENTOS O BONIFICACIONES
+                                <#elseif uso_cfdi == "G03"> G03 - GASTOS EN GENERAL
+                                <#elseif uso_cfdi == "I01"> 01 - CONSTRUCCIONES
+                                <#elseif uso_cfdi == "I02"> I02 - MOBILIARIO Y EQUIPO DE OFICINA POR INVERSIONES
+                                <#elseif uso_cfdi == "I03"> I03 - EQUIPO DE TRANSPORTE
+                                <#elseif uso_cfdi == "I04"> I04 - EQUIPO DE CÓMPUTO Y ACCESORIOS
+                                <#elseif uso_cfdi == "I05"> I05 - DADOS, TROQUELES, MOLDES, MATRICES Y HERRAMENTAL
+                                <#elseif uso_cfdi == "I06"> I06 - COMUNICACIONES TELEFÓNICAS
+                                <#elseif uso_cfdi == "I07"> I07 - COMUNICACIONES SATELITALES
+                                <#elseif uso_cfdi == "I08"> I08 - OTRA MAQUINARIA Y EQUIPO
+                                <#elseif uso_cfdi == "P01"> P01 - POR DEFINIR
+                                <#elseif uso_cfdi == "S01"> S01 - SIN EFECTOS FISCALES
+                                <#elseif uso_cfdi == "CN01"> CN01 - NÓMINA
+                                <#elseif uso_cfdi == "CP01"> CP01 - PAGOS
+                                <#else>
+                                </#if>  -->
                         </td>
-                        </#if>
+                    <#else>
+                        <td colspan="14" rowspan="2" style="border: 1px; border-color: #e3e3e3; font-size:9px;"><#if record.entity.altname?has_content>${record.entity.altname}<#elseif record.entity.companyname?has_content><#else>${record.entity.firstname} ${record.entity.lastname}</#if><br/><br/><b>RFC:</b> <#outputformat "XML">${record.custbody_mx_customer_rfc?upper_case}</#outputformat>
+                            <#if dataXML?has_content>
+                                <#assign uso_cfdi = dataXML.Receptor.atributos.UsoCFDI>
+                            <#else>
+                                <#assign uso_cfdi = record.custbody_mx_cfdi_usage?keep_before(" ")>
+                            </#if>
+                            <br/>
+                            <#if record.entity.custentity_mx_sat_industry_type?has_content>
+                                <br /><b>Régimen Fiscal:</b> ${record.entity.custentity_mx_sat_industry_type?upper_case}
+                            </#if>
+                            <br/><br/><b>Domicilio Fiscal:</b> ${record.billaddress?replace("<br />",  " ")?upper_case}
+                            <br/><br/><b>Uso del CFDI:</b>
+                                <#if uso_cfdi == "D01"> D01 - HONORARIOS MÉDICOS, DENTALES Y GASTOS HOSPITALARIOS
+                                <#elseif uso_cfdi == "D02"> D02 - GASTOS MÉDICOS POR INCAPACIDAD O DISCAPACIDAD
+                                <#elseif uso_cfdi == "D03"> D03 - GASTOS FUNERALES
+                                <#elseif uso_cfdi == "D04"> D04 - DONATIVOS
+                                <#elseif uso_cfdi == "D05"> D05 - INTERESES REALES EFECTIVAMENTE PAGADOS POR CRÉDITOS HIPOTECARIOS (CASA HABITACIÓN)
+                                <#elseif uso_cfdi == "D06"> D06 - APORTACIONES VOLUNTARIAS AL SAR
+                                <#elseif uso_cfdi == "D07"> D07 - PRIMAS POR SEGUROS DE GASTOS MÉDICOS
+                                <#elseif uso_cfdi == "D08"> D08 - GASTOS DE TRANSPORTACIÓN ESCOLAR OBLIGATORIA
+                                <#elseif uso_cfdi == "D09"> D09 - DEPÓSITOS EN CUENTAS PARA EL AHORRO, PRIMAS QUE TENGAN COMO BASE PLANES DE PENSIONES
+                                <#elseif uso_cfdi == "D10"> D10 - PAGOS POR SERVICIOS EDUCATIVOS (COLEGIATURAS)
+                                <#elseif uso_cfdi == "G01"> G01 - ADQUISICIÓN DE MERCANCÍAS
+                                <#elseif uso_cfdi == "G02"> G02 - DEVOLUCIONES, DESCUENTOS O BONIFICACIONES
+                                <#elseif uso_cfdi == "G03"> G03 - GASTOS EN GENERAL
+                                <#elseif uso_cfdi == "I01"> 01 - CONSTRUCCIONES
+                                <#elseif uso_cfdi == "I02"> I02 - MOBILIARIO Y EQUIPO DE OFICINA POR INVERSIONES
+                                <#elseif uso_cfdi == "I03"> I03 - EQUIPO DE TRANSPORTE
+                                <#elseif uso_cfdi == "I04"> I04 - EQUIPO DE CÓMPUTO Y ACCESORIOS
+                                <#elseif uso_cfdi == "I05"> I05 - DADOS, TROQUELES, MOLDES, MATRICES Y HERRAMENTAL
+                                <#elseif uso_cfdi == "I06"> I06 - COMUNICACIONES TELEFÓNICAS
+                                <#elseif uso_cfdi == "I07"> I07 - COMUNICACIONES SATELITALES
+                                <#elseif uso_cfdi == "I08"> I08 - OTRA MAQUINARIA Y EQUIPO
+                                <#elseif uso_cfdi == "P01"> P01 - POR DEFINIR
+                                <#elseif uso_cfdi == "S01"> S01 - SIN EFECTOS FISCALES
+                                <#elseif uso_cfdi == "CN01"> CN01 - NÓMINA
+                                <#elseif uso_cfdi == "CP01"> CP01 - PAGOS
+                                <#else>
+                                </#if>
+                            </td>
+                    </#if>
                     <td></td>
-
                     <td colspan="14" rowspan="2" style="border: 1px; border-color: #e3e3e3; font-size:9px;">
                         <#if subsidiary?has_content>
                             <#if subsidiary.custrecord_mx_sat_registered_name?has_content>
@@ -647,17 +646,17 @@
                             ${(companyInformation.legalname?upper_case)?keep_before(",")}
                             <br/><br/><b>RFC:</b> ${companyInformation.employerid}
                             <#--  <#list record.custbody_efx_fe_dirsubs?split(" ") as x>
-                              <#assign quanti = x?length>
-                              ${x[quanti]}
+                                <#assign quanti = x?length>
+                                ${x[quanti]}
                             </#list>  -->
                             <#list subsidiary.taxregistration as subsy>
-                              ${subsy.taxregistrationnumber}
+                                ${subsy.taxregistrationnumber}
                             </#list>
                         </#if>
                         
                         <br/><br/><b>Régimen Fiscal:</b> ${infoEmpresa.custrecord_mx_sat_industry_type?upper_case}
+                        <br/><br/><b>Dirección de Entrega:</b> ${record.shipaddress?replace("<br />",  " ")?upper_case}
                     </td>
-
                 </tr>
             </table>
         </#if>
@@ -665,31 +664,31 @@
 
     <table class="body" style="width: 100%; margin-top: 9px;">
         <tr>
-          <#if record.entity.terms?has_content >
-            <th colspan="3" style="background-color: #80BFFF;">Condiciones de Pago:</th>
-          </#if>
-          <th colspan="3" style="background-color: #80BFFF;">Orden de venta</th>
-          <th colspan="3" style="background-color: #80BFFF;">Moneda</th>
-          <#if record.otherrefnum?has_content >
-            <th colspan="3" style="background-color: #80BFFF;">ODC</th>
-          </#if>
+            <#if record.entity.terms?has_content >
+                <th class="cabecera" colspan="3">Condiciones de Pago:</th>
+            </#if>
+            <th class="cabecera" colspan="3">Orden de venta</th>
+            <th class="cabecera" colspan="3">Moneda</th>
+            <#if record.otherrefnum?has_content >
+                <th class="cabecera" colspan="3">ODC</th>
+            </#if>
         </tr>
         <tr>
-          <#if record.entity.terms?has_content >
-            <td colspan="3" style="font-size:9px;">${record.entity.terms}</td>
-          </#if>
-          <td colspan="3" style="font-size:9px;">${record.createdfrom}</td>
-          <#--  <td colspan="3" style="font-size:9px;">${record.exchangerate?string["0.00"]}</td>  -->
-          <td colspan="3" style="font-size:9px;">${record.currency.symbol}</td>
-          <#if record.otherrefnum?has_content >
-            <td colspan="3" style="font-size:9px;">${record.otherrefnum}</td>
-          </#if>
+            <#if record.entity.terms?has_content >
+                <td colspan="3" style="font-size:9px;">${record.entity.terms}</td>
+            </#if>
+            <td colspan="3" style="font-size:9px;">${record.createdfrom?keep_after("#")}</td>
+            <#--  <td colspan="3" style="font-size:9px;">${record.exchangerate?string["0.00"]}</td>  -->
+            <td colspan="3" style="font-size:9px;">${record.currency.symbol}</td>
+            <#if record.otherrefnum?has_content >
+                <td colspan="3" style="font-size:9px;">${record.otherrefnum}</td>
+            </#if>
         </tr>
         <!--<tr>
-          <th colspan= "18" style="width: 100%;">Comentarios</th>
-          </tr>
-          <tr>
-          <td colspan= "18" style="width: 100%; font-size:10px;">${record.memo}</td>
+            <th colspan= "18" style="width: 100%;">Comentarios</th>
+            </tr>
+            <tr>
+            <td colspan= "18" style="width: 100%; font-size:10px;">${record.memo}</td>
         </tr>-->
     </table>
 
@@ -713,20 +712,20 @@
                 <thead>
                 <tr style="margin-top: 0px; padding-top: 0px; padding-bottom: 0px">
                     <th align="center" colspan="2"
-                        style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">Partida
+                        style="font-size: 7pt; padding-left: 0px; padding-right: 0px;">Partida
                     </th>
                     <#--  <th align="center" colspan="5"
                         style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">Código<br/>Clave
                     </th>  -->
                     <th align="center" colspan="4"
-                        style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">Cantidad
+                        style="padding-left: 0px; padding-right: 0px;">Cantidad
                     </th>
-                    <th align="center" colspan="18" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
-                        <table style="width: 100%; margin-top: 0px; margin-bottom: 0px; border: 1px; border-color: #80BFFF; background-color: #80BFFF;">
+                    <th align="center" colspan="18" style="padding-left: 0px; padding-right: 0px;">
+                        <table style="width: 100%; margin-top: 0px; margin-bottom: 0px;">
                             <tr>
-                              <th align="center" colspan="18" style="font-size: 5pt; padding-top: 0px; padding-bottom: 2px; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
-                                Descripción
-                              </th>
+                                <th align="center" colspan="18" style="padding-top: 0px; padding-bottom: 2px; padding-left: 0px; padding-right: 0px;">
+                                    Descripción
+                                </th>
                             </tr>
                             <#--  <tr>
                                 <td colspan="18" style="border-left: 1px; border-color: #80BFFF; background-color: #80BFFF;">
@@ -750,44 +749,45 @@
                             </tr>  -->
                         </table>
                     </th>
-                    <th align="center" colspan="5"
+                    <#--  <th align="center" colspan="5"
                         style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">UPC
-                    </th>
+                    </th>  -->
                     <th align="center" colspan="2"
-                        style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">Unidad
+                        style="font-size: 7pt; padding-left: 0px; padding-right: 0px;">Unidad
                     </th>
-                    <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
-                      Precio<br/>Unitario
+                    <th align="center" colspan="4" style="padding-left: 0px; padding-right: 0px;">
+                        Precio<br/>Unitario
                     </th>
                     <#--  <th align="center" colspan="4"
                         style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">Impuesto
                     </th>  -->
                     <th align="center" colspan="4"
-                        style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">Descuento
+                        style="padding-left: 0px; padding-right: 0px;">Descuento
                     </th>
                     <th align="center" colspan="4"
-                        style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">Importe
+                        style="padding-left: 0px; padding-right: 0px;">Importe
                     </th>
                 </tr>
                 </thead>
                 <#assign linexml = 0>
                 <#list dataXML.Conceptos.Concepto as Conceptos>
+                    <#assign xmlIndex = Conceptos?index>
                     <#assign linexml = linexml+1>
                     <tr>
                         <td align="center" colspan="2" line-height="150%"
-                            style="border-left: 0px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px;">${linexml?string["0"]}
+                            style="border-left: 0px; border-color: #e3e3e3;font-size: 7pt; padding-top: 1px;">${linexml?string["0"]}
                         </td>
                         <#--  <td align="center" colspan="5" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding:0;">
-                          ${Conceptos.atributos.ClaveProdServ}
+                            ${Conceptos.atributos.ClaveProdServ}
                         </td>  -->
-                        <td align="center" colspan="4" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">
-                            ${Conceptos.atributos.Cantidad?number?string[",##0.00"]}
+                        <td align="center" colspan="4" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">
+                            ${Conceptos.atributos.Cantidad?number?string["0"]}
                         </td>
                         <td colspan="18" style="margin: 0; padding: 0;">
                             <table style="width: 100%">
                                 <tr>
                                     <td colspan="18"
-                                        style="border-left: 1px; border-color: #e3e3e3; font-size: 6pt; padding-right: 1px; padding-left: 1px; padding-top: 1px; padding-bottom: 0px;">${Conceptos.atributos.Descripcion}</td>
+                                        style="border-left: 1px; border-color: #e3e3e3; font-size: 8pt; padding-right: 1px; padding-left: 1px; padding-top: 1px; padding-bottom: 0px;">${Conceptos.atributos.Descripcion}</td>
                                 </tr>
                                 <tr>
                                     <td colspan="18" style="border-left: 1px; border-color: #e3e3e3;">
@@ -879,31 +879,40 @@
                                             style="font-size: 4pt; padding-top: 1px;  padding-bottom: 1px;">${Conceptos.InformacionAduanera.NumeroPedimento}</td>
                                     </tr>
                                 </#if>
-                                <#if record.entity.custentity_mx_sat_industry_type?has_content && Conceptos.atributos.ObjetoImp?has_content>
-                                        <tr style="padding:0px 0px;" align="center">
-                                            <td colspan="6"
-                                                style="font-size: 5pt; padding-top: 1px;  padding-bottom: 1px; border-left: 1px; border-color: #e3e3e3;"><b>Objeto de impuesto:</b><br/>
-                                            </td>
-                                            <#--  <td colspan="13" style="font-size: 5pt; padding-top: 1px;  padding-bottom: 1px;">${custcol_mx_txn_line_sat_tax_object}</td>  -->
-                                            <#if Conceptos.atributos.ObjetoImp?number == 1>
-                                                <#assign objImpDesc = "NO OBJETO DE IMPUESTO.">
-                                            <#elseif Conceptos.atributos.ObjetoImp?number == 2>
-                                                <#assign objImpDesc = "SÍ OBJETO DE IMPUESTO.">
-                                            <#elseif Conceptos.atributos.ObjetoImp?number == 3>
-                                                <#assign objImpDesc = "SÍ OBJETO DE IMPUESTO Y NO OBLIGATORIO AL DESGLOSE.">
-                                            </#if>
-                                            <td colspan="17" style="font-size: 5pt; padding-top: 1px;  padding-bottom: 1px;">${Conceptos.atributos.ObjetoImp} - ${objImpDesc}</td>
-                                        </tr>
-                                    </#if>
+                                <#--  <#if record.entity.custentity_mx_sat_industry_type?has_content && Conceptos.atributos.ObjetoImp?has_content>
+                                    <tr style="padding:0px 0px;" align="center">
+                                        <td colspan="6"
+                                            style="font-size: 5pt; padding-top: 1px;  padding-bottom: 1px; border-left: 1px; border-color: #e3e3e3;"><b>Objeto de impuesto:</b><br/>
+                                        </td>  -->
+                                        <#--  <td colspan="13" style="font-size: 5pt; padding-top: 1px;  padding-bottom: 1px;">${custcol_mx_txn_line_sat_tax_object}</td>  -->
+                                        <#--  <#if Conceptos.atributos.ObjetoImp?number == 1>
+                                            <#assign objImpDesc = "NO OBJETO DE IMPUESTO.">
+                                        <#elseif Conceptos.atributos.ObjetoImp?number == 2>
+                                            <#assign objImpDesc = "SÍ OBJETO DE IMPUESTO.">
+                                        <#elseif Conceptos.atributos.ObjetoImp?number == 3>
+                                            <#assign objImpDesc = "SÍ OBJETO DE IMPUESTO Y NO OBLIGATORIO AL DESGLOSE.">
+                                        </#if>
+                                        <td colspan="17" style="font-size: 5pt; padding-top: 1px;  padding-bottom: 1px;">${Conceptos.atributos.ObjetoImp} - ${objImpDesc}</td>
+                                    </tr>
+                                </#if>  -->
                             </table>
                         </td>
-
-                        <td align="center" colspan="5"
-                            style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.NoIdentificacion}</td>
-                        <td align="center" colspan="2"
-                            style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.Unidad}</td>
+                        <#--  <td align="center" colspan="5"
+                            style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.NoIdentificacion}</td>  -->
+                        <td align="center" colspan="2" style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">
+                            <#if (record.item?has_content)>
+                                <#list record.item as item>
+                                    <#assign index = item?index>
+                                    <#if (item.custcol_mx_txn_line_sat_item_code?keep_before(" ") == Conceptos.atributos.ClaveProdServ && xmlIndex == index)>
+                                        ${item.units}
+                                    </#if>
+                                </#list>
+                            <#else>
+                                ${Conceptos.atributos.ClaveUnidad}
+                            </#if>
+                        </td>
                         <td align="center" colspan="4"
-                            style="border-left: 1px; border-color: #e3e3e3; font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.ValorUnitario?number?string[",##0.00"]}</td>
+                            style="border-left: 1px; border-color: #e3e3e3; font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.ValorUnitario?number?string[",##0.00"]}</td>
                         <#assign impuestos_line_calc = 0>
                         <#if Conceptos.Impuestos.Traslados.Traslado?has_content>
                             <#if Conceptos.Impuestos.Traslados.Traslado?is_sequence>
@@ -927,9 +936,9 @@
                           ${impuestos_line_calc?string[",##0.00"]}
                         </td>  -->
                         <td align="center" colspan="4"
-                            style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.Descuento?number?string[",##0.00"]}</td>
+                            style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.Descuento?number?string[",##0.00"]}</td>
                         <td align="center" colspan="4"
-                            style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.Importe?number?string[",##0.00"]}</td>
+                            style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.Importe?number?string[",##0.00"]}</td>
                     </tr>
                     <#if record.custbody_efx_fe_complemento_educativo?has_content && record.custbody_efx_fe_complemento_educativo == true && Conceptos.ComplementoConcepto.instEducativas.atributos.nombreAlumno?has_content>
                         <tr>                
@@ -951,19 +960,18 @@
             <#else>
                 <thead>
                 <tr style="margin-top: 0px; padding-top: 0px; padding-bottom: 0px">
-                    <th align="center" colspan="2" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <th align="center" colspan="2" style="font-size: 7pt; padding-left: 0px; padding-right: 0px;">
                         Partida
                     </th>
                     <#--  <th align="center" colspan="5" style="font-size: 6pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
                       Código<br/>Clave
                     </th>  -->
-                    <th align="center" colspan="4" style="font-size: 6pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <th align="center" colspan="4" style="padding-left: 0px; padding-right: 0px;">
                         Cantidad
                     </th>
-                    <th align="center" colspan="18" style="font-size: 6pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
-                        <table style="width: 100%; margin-top: 0px; margin-bottom: 0px; border: 1px; border-color: #80BFFF; background-color: #80BFFF;">
-                          <tr>
-                            <th align="center" colspan="18" vertical-align="top" style="font-size: 6pt; padding-top: 0px; padding-bottom: 2px; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <th align="center" colspan="18" style="padding-left: 0px; padding-right: 0px;">
+                        <table style="width: 100%; margin-top: 0px; margin-bottom: 0px; border: 1px;">
+                            <th align="center" colspan="18" vertical-align="top" style="padding-top: 0px; padding-bottom: 2px; padding-left: 0px; padding-right: 0px;">
                               Descripción
                             </th>
                           </tr>
@@ -989,42 +997,42 @@
                           </tr>  -->
                         </table>
                     </th>
-                    <th align="center" colspan="5" style="font-size: 6pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <#--  <th align="center" colspan="5" style="font-size: 6pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
                       UPC
-                    </th>
-                    <th align="center" colspan="2" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    </th>  -->
+                    <th align="center" colspan="2" style="font-size: 7pt; padding-left: 0px; padding-right: 0px;">
                         Unidad
                     </th>
-                    <th align="center" colspan="4" style="font-size: 6pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <th align="center" colspan="4" style="padding-left: 0px; padding-right: 0px;">
                       Precio<br/>Unitario
                     </th>
                     <#--  <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
                         Impuesto
                     </th>  -->
-                    <th align="center" colspan="4" style="font-size: 6pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <th align="center" colspan="4" style="padding-left: 0px; padding-right: 0px;">
                         Descuento
                     </th>
-                    <th align="center" colspan="4" style="font-size: 6pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <th align="center" colspan="4" style="padding-left: 0px; padding-right: 0px;">
                         Importe
                     </th>
                 </tr>
                 </thead>
                 <tr>
                     <td align="center" colspan="2" line-height="150%"
-                        style="border-left: 0px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px;">1
+                        style="border-left: 0px; border-color: #e3e3e3;font-size: 7pt; padding-top: 1px;">1
                     </td>
                     <#--  <td align="center" colspan="5" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding:0;">
-                      ${dataXML.Conceptos.Concepto.atributos.ClaveProdServ}
+                        ${dataXML.Conceptos.Concepto.atributos.ClaveProdServ}
                     </td>  -->
-                    <td align="center" colspan="4" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">
-                      ${dataXML.Conceptos.Concepto.atributos.Cantidad?number?string[",##0.00"]}
+                    <td align="center" colspan="4" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">
+                        ${dataXML.Conceptos.Concepto.atributos.Cantidad?number?string["0"]}
                     </td>
                     <td colspan="18" style="margin: 0; padding: 0;">
                         <table style="width: 100%">
                             <tr>
-                              <td colspan="18"
-                                  style="border-left: 1px; border-color: #e3e3e3; font-size: 6pt; padding-right: 1px; padding-left: 1px; padding-top: 1px; padding-bottom: 0px;">${dataXML.Conceptos.Concepto.atributos.Descripcion}
-                              </td>
+                                <td colspan="18" style="border-left: 1px; border-color: #e3e3e3; font-size: 8pt; padding-right: 1px; padding-left: 1px; padding-top: 1px; padding-bottom: 0px;">
+                                    ${dataXML.Conceptos.Concepto.atributos.Descripcion}
+                                </td>
                             </tr>
                             <tr>
                                 <td colspan="18" style="border-left: 1px; border-color: #e3e3e3;">
@@ -1072,7 +1080,6 @@
                                                 </tr>
                                             </#if>
                                         </#if>  -->
-
                                         <#if Conceptos.Impuestos.Retenciones.Retencion?has_content>
                                             <#if Conceptos.Impuestos.Retenciones.Retencion?is_sequence>
                                                 <#list Conceptos.Impuestos.Retenciones.Retencion as ret_imp>
@@ -1117,7 +1124,7 @@
                                         style="font-size: 4pt; padding-top: 1px;  padding-bottom: 1px;">${dataXML.Conceptos.Concepto.InformacionAduanera.NumeroPedimento}</td>
                                 </tr>
                             </#if>
-                            <#if record.entity.custentity_mx_sat_industry_type?has_content && dataXML.Conceptos.Concepto.atributos.ObjetoImp?has_content>
+                            <#--  <#if record.entity.custentity_mx_sat_industry_type?has_content && dataXML.Conceptos.Concepto.atributos.ObjetoImp?has_content>
                                 <#if dataXML.Conceptos.Concepto.atributos.ObjetoImp?number == 1>
                                     <#assign objImpDesc = "NO OBJETO DE IMPUESTO.">
                                 <#elseif dataXML.Conceptos.Concepto.atributos.ObjetoImp?number == 2>
@@ -1131,15 +1138,25 @@
                                     </td>
                                     <td colspan="17" style="font-size: 4pt; padding-top: 1px;  padding-bottom: 1px;">${dataXML.Conceptos.Concepto.atributos.ObjetoImp} - ${objImpDesc}</td>
                                 </tr>
-                            </#if>
+                            </#if>  -->
                         </table>
                     </td>
-                    <td align="center" colspan="5"
-                        style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.NoIdentificacion}</td>
-                    <td align="center" colspan="2"
-                        style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.Unidad}</td>
+                    <#--  <td align="center" colspan="5"
+                        style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.NoIdentificacion}</td>  -->
+                    <td align="center" colspan="2" style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">
+                        <#if (record.item?has_content)>
+                            <#list record.item as item>
+                                <#assign index = item?index>
+                                <#if (item.custcol_mx_txn_line_sat_item_code?keep_before(" ") == dataXML.Conceptos.Concepto.atributos.ClaveProdServ && xmlIndex == index)>
+                                    ${item.units}
+                                </#if>
+                            </#list>
+                        <#else>
+                            ${dataXML.Conceptos.Concepto.atributos.ClaveUnidad}
+                        </#if>
+                    </td>
                     <td align="center" colspan="4"
-                        style="border-left: 1px; border-color: #e3e3e3; font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.ValorUnitario?number?string[",##0.00"]}</td>
+                        style="border-left: 1px; border-color: #e3e3e3; font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.ValorUnitario?number?string[",##0.00"]}</td>
                     <#assign impuestos_line_calc = 0>
                     <#if Conceptos.Impuestos.Traslados.Traslado?has_content>
                         <#if Conceptos.Impuestos.Traslados.Traslado?is_sequence>
@@ -1163,9 +1180,9 @@
                       ${impuestos_line_calc?string[",##0.00"]}
                     </td>  -->
                     <td align="center" colspan="4"
-                        style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.Descuento?number?string[",##0.00"]}</td>
+                        style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.Descuento?number?string[",##0.00"]}</td>
                     <td align="center" colspan="4"
-                        style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.Importe?number?string[",##0.00"]}</td>
+                        style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.Importe?number?string[",##0.00"]}</td>
                 </tr>
                 <#if record.custbody_efx_fe_complemento_educativo?has_content && record.custbody_efx_fe_complemento_educativo == true && dataXML.Conceptos.Concepto.ComplementoConcepto.instEducativas.atributos.nombreAlumno?has_content>
                     <tr>                
@@ -1190,22 +1207,22 @@
             <#list record.item as item><#if item_index==0>
                 <thead>
                 <tr style="margin-top: 0px; padding-top: 0px; padding-bottom: 0px">
-                    <th align="center" colspan="2" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <th align="center" colspan="2" style="font-size: 7pt; padding-left: 0px; padding-right: 0px;">
                         Partida
                     </th>
-                    <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <th align="center" colspan="4" style="padding-left: 0px; padding-right: 0px;">
                         Código
                     </th>
                     <#--  <th align="center" colspan="5" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
                       Código<br/>Clave
                     </th>  -->
-                    <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <th align="center" colspan="4" style="padding-left: 0px; padding-right: 0px;">
                       Cantidad
                     </th>
-                    <th align="center" colspan="18" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
-                      <table style="width: 100%; margin-top: 0px; margin-bottom: 0px; border: 1px; border-color: #80BFFF">
+                    <th align="center" colspan="18" style="padding-left: 0px; padding-right: 0px;">
+                      <table style="width: 100%; margin-top: 0px; margin-bottom: 0px;">
                         <tr>
-                          <th align="center" colspan="18" style="font-size: 5pt; padding-top: 0px; padding-bottom: 2px; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                          <th align="center" colspan="18" style="padding-top: 0px; padding-bottom: 2px; padding-left: 0px; padding-right: 0px;">
                             Descripción
                           </th>
                         </tr>
@@ -1229,22 +1246,22 @@
                         </tr>  -->
                       </table>
                     </th>
-                    <th align="center" colspan="5" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <#--  <th align="center" colspan="5" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
                       UPC
-                    </th>
-                    <th align="center" colspan="2" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    </th>  -->
+                    <th align="center" colspan="2" style="font-size: 7pt; padding-left: 0px; padding-right: 0px;">
                       Unidad
                     </th>
-                    <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <th align="center" colspan="4" style="padding-left: 0px; padding-right: 0px;">
                       Precio<br/>Unitario
                     </th>
                     <#--  <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
                       Impuesto
                     </th>  -->
-                    <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <th align="center" colspan="4" style="padding-left: 0px; padding-right: 0px;">
                       Descuento
                     </th>
-                    <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px; background-color: #80BFFF;">
+                    <th align="center" colspan="4" style="padding-left: 0px; padding-right: 0px;">
                       ${item.amount@label}
                     </th>
                 </tr>
@@ -1262,20 +1279,20 @@
                       <#if desglose_json?has_content>
                           <#assign "desglose" = desglose_json?eval>
                           <td align="center" colspan="2" line-height="150%"
-                              style="border-left: 0px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px;">${line_number?string["0"]}</td>
+                              style="border-left: 0px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px;">${line_number?string["0"]}</td>
                           <td align="center" colspan="4" line-height="150%"
-                              style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px;">${item.item?keep_before(" ")}</td>
+                              style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px;">${item.item?keep_before(" ")}</td>
                           <#--  <td align="center" colspan="5" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding:0;">
                             ${item.custcol_mx_txn_line_sat_item_code?keep_before(" ")}
                           </td>  -->
-                          <td align="center" colspan="4" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">
-                            ${item.quantity}
+                          <td align="center" colspan="4" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">
+                            ${item.quantity?number?string["0"]}
                           </td>
                           <td colspan="18" style="margin: 0; padding: 0;">
                               <table style="width: 100%">
                                   <tr>
                                       <td colspan="18"
-                                          style="border-left: 1px; border-color: #e3e3e3; font-size: 6pt; padding-right: 1px; padding-left: 1px; padding-top: 1px; padding-bottom: 0px;">${item.description}</td>
+                                          style="border-left: 1px; border-color: #e3e3e3; font-size: 8pt; padding-right: 1px; padding-left: 1px; padding-top: 1px; padding-bottom: 0px;">${item.description}</td>
                                   </tr>
                                   <tr>
                                       <td colspan="18" style="border-left: 1px; border-color: #e3e3e3;">
@@ -1341,50 +1358,57 @@
                                               style="font-size: 4pt; padding-top: 1px;  padding-bottom: 1px;">${item.custcol_mx_txn_line_sat_cust_req_num}</td>
                                       </tr>
                                   </#if>
-                                  <#if record.entity.custentity_mx_sat_industry_type?has_content && item.custcol_mx_txn_line_sat_tax_object?has_content>
+                                  <#--  <#if record.entity.custentity_mx_sat_industry_type?has_content && item.custcol_mx_txn_line_sat_tax_object?has_content>
                                       <tr style="padding:0px 0px;" align="center">
                                           <td colspan="6"
                                               style="font-size: 5pt; padding-top: 1px;  padding-bottom: 1px; border-left: 1px; border-color: #e3e3e3;"><b>Objeto de impuesto:</b><br/>
-                                          </td>
+                                          </td>  -->
                                           <#--  <td colspan="13" style="font-size: 4pt; padding-top: 1px;  padding-bottom: 1px;">${custcol_mx_txn_line_sat_tax_object}</td>  -->
-                                          
-                                          <td colspan="17" style="font-size: 4pt; padding-top: 1px;  padding-bottom: 1px;">${item.custcol_mx_txn_line_sat_tax_object}</td>
+                                          <#--  <td colspan="17" style="font-size: 4pt; padding-top: 1px;  padding-bottom: 1px;">${item.custcol_mx_txn_line_sat_tax_object}</td>
                                       </tr>
-                                  </#if>
-                                  <#if record.entity.custentity_mx_sat_industry_type?has_content && dataXML?has_content>
-                                  <#if dataXML.Conceptos.Concepto.atributos.ObjetoImp?has_content>
-                                          <#if dataXML.Conceptos.Concepto.atributos.ObjetoImp?number == 1>
-                                              <#assign objImpDesc = "NO OBJETO DE IMPUESTO.">
-                                          <#elseif dataXML.Conceptos.Concepto.atributos.ObjetoImp?number == 2>
-                                              <#assign objImpDesc = "SÍ OBJETO DE IMPUESTO.">
-                                          <#elseif dataXML.Conceptos.Concepto.atributos.ObjetoImp?number == 3>
-                                              <#assign objImpDesc = "SÍ OBJETO DE IMPUESTO Y NO OBLIGATORIO AL DESGLOSE.">
-                                          </#if>
-                                          <tr style="padding:0px 0px;">
-                                              <td colspan="6"
-                                                  style="font-size: 5pt; padding-top: 1px;  padding-bottom: 1px;"><b>Objeto de impuesto:</b><br/>
-                                              </td>
-                                              <td colspan="17"
-                                                  style="font-size: 5pt; padding-top: 1px;  padding-bottom: 1px;">${dataXML.Conceptos.Concepto.atributos.ObjetoImp} - ${ObjetoImp}</td>
-                                          </tr>
-                                      </#if>
-                                      </#if>
+                                  </#if>  -->
+                                    <#--  <#if record.entity.custentity_mx_sat_industry_type?has_content && dataXML?has_content>
+                                        <#if dataXML.Conceptos.Concepto.atributos.ObjetoImp?has_content>
+                                            <#if dataXML.Conceptos.Concepto.atributos.ObjetoImp?number == 1>
+                                                <#assign objImpDesc = "NO OBJETO DE IMPUESTO.">
+                                            <#elseif dataXML.Conceptos.Concepto.atributos.ObjetoImp?number == 2>
+                                                <#assign objImpDesc = "SÍ OBJETO DE IMPUESTO.">
+                                            <#elseif dataXML.Conceptos.Concepto.atributos.ObjetoImp?number == 3>
+                                                <#assign objImpDesc = "SÍ OBJETO DE IMPUESTO Y NO OBLIGATORIO AL DESGLOSE.">
+                                            </#if>
+                                            <tr style="padding:0px 0px;">
+                                                <td colspan="6" style="font-size: 5pt; padding-top: 1px;  padding-bottom: 1px;">
+                                                    <b>Objeto de impuesto:</b><br/>
+                                                </td>
+                                                <td colspan="17" style="font-size: 5pt; padding-top: 1px;  padding-bottom: 1px;">
+                                                    ${dataXML.Conceptos.Concepto.atributos.ObjetoImp} - ${ObjetoImp}
+                                                </td>
+                                            </tr>
+                                        </#if>
+                                    </#if>  -->
                               </table>
                           </td>
-                          <td align="center" colspan="5"
-                              style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.custcol_efx_fe_upc_code}</td>
+                          <#--  <td align="center" colspan="5" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">
+                            <#if item.custcol_efx_fe_upc_code?has_content>
+                                ${item.custcol_efx_fe_upc_code}
+                            <#else>
+                                ${item.custcol_item_upc}
+                            </#if>
+                          </td>  -->
                           <td align="center" colspan="2"
-                              style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.units}</td>
+                              style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.units}</td>
                           <td align="center" colspan="4"
-                              style="border-left: 1px; border-color: #e3e3e3; font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.rate?string[",##0.00"]}</td>
+                              style="border-left: 1px; border-color: #e3e3e3; font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.rate?string[",##0.00"]}</td>
                           <#--  <td align="center" colspan="4" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">
                             ${item.tax1amt}
                           </td>  -->
                           <td align="center" colspan="4"
-                              style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${importe_discount[item_index+1]?number?string[",##0.00"]}</td>
+                              style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${importe_discount[item_index+1]?number?string[",##0.00"]}</td>
                           <#assign "descuento_total" = descuento_total + importe_discount[item_index+1]>
-                          <td align="center" colspan="4"
-                              style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.grossamt}</td>
+                          <td align="center" colspan="4" style="border-left: 1px; border-color: #e3e3e3;font-size: 8pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">
+                            ${item.amount}
+                            <#--  ${item.grossamt}  -->
+                          </td>
                       </#if>
                   </tr>
                   <#if record.custbody_efx_fe_complemento_educativo?has_content && record.custbody_efx_fe_complemento_educativo == true && item.custcol_csc_nombrealumno?has_content>
@@ -1457,26 +1481,26 @@
                             style="border-top: 0px; border-bottom: 1px; border-color: #e3e3e3; font-size: 7pt;border-right: 0px;">
                             <strong>Cantidad con letra:</strong> ${record.custbody_efx_fe_total_text}</td>
                     </tr>
-                    
-                  <#if record.location?has_content>
-                   <tr>
-                        <td align="left" colspan="2"
-                            style=" border-bottom: 1px; border-color: #e3e3e3; font-size: 7pt;">
-                            <strong>Ubicación:</strong> ${record.location}</td>
-                    </tr> 
-                  </#if>
+                <#--  ******************* ESTE APARTADO ES FUNCIONA  *******************-->
+                <#--  <#if record.location?has_content>  -->
+                    <#--  <tr>  -->
+                        <#--  <td align="left" colspan="2"  -->
+                            <#--  style=" border-bottom: 1px; border-color: #e3e3e3; font-size: 7pt;">  -->
+                            <#--  <strong>Ubicación:</strong> ${record.location}</td>  -->
+                    <#--  </tr>   -->
+                <#--  </#if>  -->
+                <#--  ****************************************************************************  -->
                         <!--<td align="left"
                             style="border-right: 1px; border-bottom: 1px; border-color: #e3e3e3; font-size: 7pt;">
                             <strong>Ubicacion:</strong> ${record.location}</td>
                         <td align="left"
                             style="font-size: 7pt; border-bottom: 1px; border-color: #e3e3e3; padding-left: 0px;border-right: 0px;">
                             <table style="margin-left: 0px; padding-left: 0px;margin-top: 0px; padding-top: 0px;">
-                                  
-                              <tr>
+                                <tr>
                                     <td align="left"
                                         style="font-size: 7pt; padding-left: 0px;margin-top: 0px; padding-top: 0px;">
                                         <strong>Test </strong></td>  
-                                  <td style="font-size: 7pt;margin-top: 0px; padding-top: 0px;">
+                                    <td style="font-size: 7pt;margin-top: 0px; padding-top: 0px;">
                                         
                                     </td>
                                 </tr>
@@ -1621,19 +1645,18 @@
 
     <table style="width: 100%; margin-top: 10px; padding: 0; border: 0px; border-color: #e3e3e3;">
         <tr>
-            <th colspan="6" style="background-color: #80BFFF;">Detalles del comprobante</th>
+            <th class="cabecera" colspan="6">Detalles del comprobante</th>
         </tr>
         <tr>
             <td colspan="1" style="font-size: 7pt;"><b>Lugar de Expedición:</b></td>
             <#if dataXML?has_content>
-            <#if dataXML.atributos.LugarExpedicion?has_content>
+                <#if dataXML.atributos.LugarExpedicion?has_content>
                     <td colspan="2" style="font-size: 7pt;">${dataXML.atributos.LugarExpedicion}</td>
-                
                 </#if>
-                <#else>
-                    <td colspan="2" style="font-size: 7pt;">${record.subsidiary.zip}</td>
-                </#if>
-                <#if dataXML?has_content>
+            <#else>
+                <td colspan="2" style="font-size: 7pt;">${record.subsidiary.zip}</td>
+            </#if>
+            <#if dataXML?has_content>
                 <#assign forma_pago = dataXML.atributos.FormaPago>
             <#else>
                 <#assign forma_pago = record.custbody_mx_txn_sat_payment_method?keep_before(" ")>
@@ -1702,14 +1725,12 @@
         <tr>
             <td colspan="1" style="font-size: 7pt;"><b>Tipo de Comprobante:</b></td>
             <td colspan="2" style="font-size: 7pt;">I - Ingreso</td>
-          
-                      <td colspan="1" style="font-size: 7pt;"><b>Método de pago:</b></td>
+            <td colspan="1" style="font-size: 7pt;"><b>Método de pago:</b></td>
             <#if dataXML?has_content>
                 <#assign metodo_pago = dataXML.atributos.MetodoPago>
             <#else>
                 <#assign metodo_pago = record.custbody_mx_txn_sat_payment_term?keep_before(" ")>
             </#if>
-
             <#if metodo_pago == "PUE">
                 <td colspan="2" style="font-size: 7pt">PUE - PAGO EN UNA SOLA EXHIBICION</td>
             <#elseif metodo_pago == "PPD">
@@ -1717,123 +1738,121 @@
             <#else>
                 <td colspan="2" style="font-size: 7pt"></td>
             </#if>
-
         </tr>
         <tr>
-         
-        <#if record.entity.custentity_mx_sat_industry_type?has_content>
-                    <td colspan="1" style="font-size: 7pt;"><b>Tipo de Exportación:</b></td>
-                    <td colspan="2" style="font-size: 7pt;">${record.custbody_mx_cfdi_sat_export_type}</td>
+            <#if record.entity.custentity_mx_sat_industry_type?has_content>
+                <td colspan="1" style="font-size: 7pt;"><b>Tipo de Exportación:</b></td>
+                <td colspan="2" style="font-size: 7pt;">${record.custbody_mx_cfdi_sat_export_type}</td>
             </#if>
-          
+            <td colspan="1" style="font-size: 7pt;"><b>Uso de CFDI:</b></td>
+            <td colspan="2" style="font-size: 7pt;">
+                <#if dataXML?has_content>
+                    <#assign uso_cfdi = dataXML.Receptor.atributos.UsoCFDI>
+                <#else>
+                    <#assign uso_cfdi = record.custbody_mx_cfdi_usage?keep_before(" ")>
+                </#if>
+                <#if uso_cfdi == "D01"> D01 - HONORARIOS MÉDICOS, DENTALES Y GASTOS HOSPITALARIOS
+                <#elseif uso_cfdi == "D02"> D02 - GASTOS MÉDICOS POR INCAPACIDAD O DISCAPACIDAD
+                <#elseif uso_cfdi == "D03"> D03 - GASTOS FUNERALES
+                <#elseif uso_cfdi == "D04"> D04 - DONATIVOS
+                <#elseif uso_cfdi == "D05"> D05 - INTERESES REALES EFECTIVAMENTE PAGADOS POR CRÉDITOS HIPOTECARIOS (CASA HABITACIÓN)
+                <#elseif uso_cfdi == "D06"> D06 - APORTACIONES VOLUNTARIAS AL SAR
+                <#elseif uso_cfdi == "D07"> D07 - PRIMAS POR SEGUROS DE GASTOS MÉDICOS
+                <#elseif uso_cfdi == "D08"> D08 - GASTOS DE TRANSPORTACIÓN ESCOLAR OBLIGATORIA
+                <#elseif uso_cfdi == "D09"> D09 - DEPÓSITOS EN CUENTAS PARA EL AHORRO, PRIMAS QUE TENGAN COMO BASE PLANES DE PENSIONES
+                <#elseif uso_cfdi == "D10"> D10 - PAGOS POR SERVICIOS EDUCATIVOS (COLEGIATURAS)
+                <#elseif uso_cfdi == "G01"> G01 - ADQUISICIÓN DE MERCANCÍAS
+                <#elseif uso_cfdi == "G02"> G02 - DEVOLUCIONES, DESCUENTOS O BONIFICACIONES
+                <#elseif uso_cfdi == "G03"> G03 - GASTOS EN GENERAL
+                <#elseif uso_cfdi == "I01"> 01 - CONSTRUCCIONES
+                <#elseif uso_cfdi == "I02"> I02 - MOBILIARIO Y EQUIPO DE OFICINA POR INVERSIONES
+                <#elseif uso_cfdi == "I03"> I03 - EQUIPO DE TRANSPORTE
+                <#elseif uso_cfdi == "I04"> I04 - EQUIPO DE CÓMPUTO Y ACCESORIOS
+                <#elseif uso_cfdi == "I05"> I05 - DADOS, TROQUELES, MOLDES, MATRICES Y HERRAMENTAL
+                <#elseif uso_cfdi == "I06"> I06 - COMUNICACIONES TELEFÓNICAS
+                <#elseif uso_cfdi == "I07"> I07 - COMUNICACIONES SATELITALES
+                <#elseif uso_cfdi == "I08"> I08 - OTRA MAQUINARIA Y EQUIPO
+                <#elseif uso_cfdi == "P01"> P01 - POR DEFINIR
+                <#elseif uso_cfdi == "S01"> S01 - SIN EFECTOS FISCALES
+                <#elseif uso_cfdi == "CN01"> CN01 - NÓMINA
+                <#elseif uso_cfdi == "CP01"> CP01 - PAGOS
+                <#else>
+                </#if>
+            </td>
         </tr>
 
     </table>
 
     <#if record.custbody_efx_fe_ce_destinatario_name?has_content>
-<table style="width: 100%; margin-top: 10px; padding: 0; border: 0px; border-color: #e3e3e3;">
-    <tr>
-        <th colspan="6">Comercio Exterior</th>
-    </tr>
-    <tr>
-        <td colspan="1" style="font-size: 7pt;"><b>No. Registro Receptor:</b></td>
-        <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_recep_num_reg}</td>
-        <td colspan="1" style="font-size: 7pt;"><b>Residencia Fiscal Receptor:</b></td>
-        <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_rec_residenciaf}</td>
-    </tr>
-    <tr>
-        <td colspan="1" style="font-size: 7pt;"><b>Tipo de Cambio:</b></td>
-        <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_exchage}</td>
-        <td colspan="1" style="font-size: 7pt;"><b>Clave de Incoterm:</b></td>
-        <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_incoterm}</td>
-    </tr>
-    <tr>
-        <td colspan="1" style="font-size: 7pt;"><b>Total en Dolares:</b></td>
-        <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_totalusd}</td>
-        <td colspan="1" style="font-size: 7pt;"><b>Clave de Pedimento:</b></td>
-        <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_clavepedimento}</td>
+        <table style="width: 100%; margin-top: 10px; padding: 0; border: 0px; border-color: #e3e3e3;">
+            <tr>
+                <th colspan="6">Comercio Exterior</th>
+            </tr>
+            <tr>
+                <td colspan="1" style="font-size: 7pt;"><b>No. Registro Receptor:</b></td>
+                <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_recep_num_reg}</td>
+                <td colspan="1" style="font-size: 7pt;"><b>Residencia Fiscal Receptor:</b></td>
+                <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_rec_residenciaf}</td>
+            </tr>
+            <tr>
+                <td colspan="1" style="font-size: 7pt;"><b>Tipo de Cambio:</b></td>
+                <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_exchage}</td>
+                <td colspan="1" style="font-size: 7pt;"><b>Clave de Incoterm:</b></td>
+                <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_incoterm}</td>
+            </tr>
+            <tr>
+                <td colspan="1" style="font-size: 7pt;"><b>Total en Dolares:</b></td>
+                <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_totalusd}</td>
+                <td colspan="1" style="font-size: 7pt;"><b>Clave de Pedimento:</b></td>
+                <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_clavepedimento}</td>
 
-    </tr>
-    <tr>
-        <td colspan="1" style="font-size: 7pt;"><b>No. Registro Propietario:</b></td>
-        <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_propietario_numreg}</td>
-        <td colspan="1" style="font-size: 7pt;"><b>Residencia Fiscal Propietario:</b></td>
-        <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_p_residenciafiscal}</td>
+            </tr>
+            <tr>
+                <td colspan="1" style="font-size: 7pt;"><b>No. Registro Propietario:</b></td>
+                <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_propietario_numreg}</td>
+                <td colspan="1" style="font-size: 7pt;"><b>Residencia Fiscal Propietario:</b></td>
+                <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_p_residenciafiscal}</td>
 
-    </tr>
-    <tr>
-        <td colspan="1" style="font-size: 7pt;"><b>Motivo de Traslado:</b></td>
-        <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_motivo_traslado}</td>
-        <td colspan="1" style="font-size: 7pt;"><b>No. Certificado Origen:</b></td>
-        <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_ncertificado_origen}</td>
+            </tr>
+            <tr>
+                <td colspan="1" style="font-size: 7pt;"><b>Motivo de Traslado:</b></td>
+                <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_motivo_traslado}</td>
+                <td colspan="1" style="font-size: 7pt;"><b>No. Certificado Origen:</b></td>
+                <td colspan="2" style="font-size: 7pt;">${record.custbody_efx_fe_ce_ncertificado_origen}</td>
+            </tr>
 
-    </tr>
-
-</table>
-
-
-<table class="itemtable" style="width: 100%; margin-top: 3px; border: 1px; border-color: #e3e3e3;"><#list record.item as item><#if item_index==0>
-    <thead>
-    <tr style= "margin-top: 0px; padding-top: 0px; padding-bottom: 0px">
-        <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px;">Código</th>
-        <th align="center" colspan="5" style="font-size: 5pt; padding-left: 0px; padding-right: 0px;">No. Identificación</th>
-        <th align="center" colspan="8" style="font-size: 5pt; padding-left: 0px; padding-right: 0px;">Fracción Arancelaria</th>
-        <th align="center" colspan="2" style="font-size: 4pt; padding-left: 0px; padding-right: 0px;">Cantidad Aduana</th>
-        <th align="center" colspan="5" style="font-size: 5pt; padding-left: 0px; padding-right: 0px;">Unidad Aduana</th>
-        <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px;">Valor Unitario Aduana</th>
-        <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px;">Valor en Dolares</th>
-
-    </tr>
-    </thead>
-</#if>
-
-<tr>
-
-
-    <td align="center" colspan="4" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px;">${item.item?keep_before(" ")}</td>
-    <td align="center" colspan="5" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding:0;">${item.custcol_efx_fe_upc_code}</td>
-    <td colspan="8" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top:1px;">${item.custcol_efx_fe_ce_farancel_code}</td>
-    <td align="center" colspan="2" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.custcol_efx_fe_ce_cant_aduana}</td>
-    <td align="center" colspan="5" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.custcol_efx_fe_unit_code_ce}</td>
-    <td align="center" colspan="4" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.custcol_efx_fe_ce_val_uni_aduana}</td>
-    <td align="center" colspan="4" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.custcol_efx_fe_ce_val_dolares}</td>
-
-</tr>
-
-</#list></table>
-
-</#if>
-
-    <#if record.custbody_efx_fe_leyendafiscal == true>
-        <#if record.custbody_efx_fe_leyendafiscal_detail?has_content>
-            <#assign leyendaFiscal = record.custbody_efx_fe_leyendafiscal_detail>
-            <table style="width: 100%; margin-top: 10px; padding: 0; border: 0px; border-color: #e3e3e3;">
-                <tr>
-                    <th>Leyenda Fiscal</th>
-                </tr>
-                <#if leyendaFiscal.custrecord_efx_fe_leyf_disposicionfiscal?has_content>
-                    <tr>
-                        <td style="font-size: 7pt;"><b>Disposicion
-                                Fiscal:</b> ${leyendaFiscal.custrecord_efx_fe_leyf_disposicionfiscal}</td>
-                    </tr>
+        </table>
+        <table class="itemtable" style="width: 100%; margin-top: 3px; border: 1px; border-color: #e3e3e3;">
+            <#list record.item as item>
+                <#if item_index==0>
+                    <thead>
+                        <tr style= "margin-top: 0px; padding-top: 0px; padding-bottom: 0px">
+                            <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px;">Código</th>
+                            <th align="center" colspan="5" style="font-size: 5pt; padding-left: 0px; padding-right: 0px;">No. Identificación</th>
+                            <th align="center" colspan="8" style="font-size: 5pt; padding-left: 0px; padding-right: 0px;">Fracción Arancelaria</th>
+                            <th align="center" colspan="2" style="font-size: 4pt; padding-left: 0px; padding-right: 0px;">Cantidad Aduana</th>
+                            <th align="center" colspan="5" style="font-size: 5pt; padding-left: 0px; padding-right: 0px;">Unidad Aduana</th>
+                            <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px;">Valor Unitario Aduana</th>
+                            <th align="center" colspan="4" style="font-size: 5pt; padding-left: 0px; padding-right: 0px;">Valor en Dolares</th>
+                        </tr>
+                    </thead>
                 </#if>
-
-                <#if leyendaFiscal.custrecord_efx_fe_leyf_norma?has_content>
-                    <tr>
-                        <td style="font-size: 7pt;"><b>Norma:</b> ${leyendaFiscal.custrecord_efx_fe_leyf_norma}</td>
-                    </tr>
-                </#if>
-
                 <tr>
-                    <td style="font-size: 7pt;"><b>Texto
-                            Leyenda:</b> ${leyendaFiscal.custrecord_efx_fe_leyf_textoleyenda}</td>
+                    <td align="center" colspan="4" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px;">${item.item?keep_before(" ")}</td>
+                    <td align="center" colspan="5" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding:0;">${item.custcol_efx_fe_upc_code}</td>
+                    <td colspan="8" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top:1px;">${item.custcol_efx_fe_ce_farancel_code}</td>
+                    <td align="center" colspan="2" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.custcol_efx_fe_ce_cant_aduana}</td>
+                    <td align="center" colspan="5" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.custcol_efx_fe_unit_code_ce}</td>
+                    <td align="center" colspan="4" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.custcol_efx_fe_ce_val_uni_aduana}</td>
+                    <td align="center" colspan="4" line-height="150%" style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.custcol_efx_fe_ce_val_dolares}</td>
                 </tr>
-
-            </table>
-        </#if>
+            </#list>
+        </table>
     </#if>
-<#if record.custbody_efx_fe_donativo == true>
-<table class="tablascompletas" style="margin-top:5px;">
+
+    <#--  <#if record.custbody_efx_fe_leyendafiscal == true>  -->
+    <#if record.custbody_efx_fe_donativo == true>
+        <table class="tablascompletas" style="margin-top:5px;">
             <tr>
                 <td colspan="9" class="cabecera"><b>Complemento Donativo</b></td>                
             </tr>
@@ -1845,21 +1864,19 @@
                 </td>            
             </tr>
         </table>
-        </#if>
-
+    </#if>
     <#if certData?has_content>
         <table class="tablascompletas" style="margin-top:5px;">
             <tr>
-                <td colspan="3" class="cabecera"><b>Folio Fiscal</b></td>
-                <td colspan="3" class="cabecera"><b>Certificado Digital SAT</b></td>
-                <td colspan="3" class="cabecera"><b>Fecha de certificación</b></td>
+                <td colspan="3" class="cabecera">Folio Fiscal</td>
+                <td colspan="3" class="cabecera">Certificado Digital SAT</td>
+                <td colspan="3" class="cabecera">Fecha de certificación</td>
             </tr>
             <tr>
                 <#assign datearray = certData.custbody_mx_cfdi_certify_timestamp?split("T")>
                 <td colspan="3" class="cuerposnoarticulos">${certData.custbody_mx_cfdi_uuid}</td>
                 <td colspan="3" class="cuerposnoarticulos">${certData.custbody_mx_cfdi_sat_serial}</td>
                 <td colspan="3" class="cuerposnoarticulos">
-
                     <#if datearray?size == 2 >
                         <#assign dayarray = datearray[0]?split("-")>
                         ${dayarray[2]}/${dayarray[1]}/${dayarray[0]} ${datearray[1]}
@@ -1869,13 +1886,12 @@
                 </td>
             </tr>
         </table>
-
         <#if record.custbody_efx_fe_related_cfdi_json?has_content>
         <#assign jsonRelacionados=record.custbody_efx_fe_related_cfdi_json?eval>
             <#if jsonRelacionados?size != 0>
                 <table class="total" style="width: 100%; margin-top: 10px; border: 1px; border-bottom: 0px; border-color: #e3e3e3;">
                     <tr>
-                        <td class="cabecera" colspan="8"><b>Documentos Relacionados</b></td>  
+                        <td class="cabecera" colspan="8">Documentos Relacionados</td>  
                     </tr>
                     <tr>
                         <td align="left" colspan="2" style="font-size: 8pt; font-weight: bold;border-top:1px;border-bottom:1px;border-right:0px;border-color: #e3e3e3;">Folio</td>
@@ -1888,13 +1904,9 @@
                             <td colspan="2" style="border-bottom:1px;border-right:0px;border-color: #e3e3e3;">
                                 ${cfdiRel.fol}
                             </td>
-                        
-                        
                             <td colspan="3" style="border-bottom:1px;border-right:0px;border-color: #e3e3e3;">
                                 ${cfdiRel.type}
                             </td>
-                        
-                        
                             <td colspan="3" style="bold;border-bottom:1px;border-color: #e3e3e3;">
                                 ${cfdiRel.uuid}
                             </td>
@@ -1903,10 +1915,9 @@
                 </table>
             </#if>
         </#if>
-
         <table class="total" style="width: 100%; margin-top: 10px; border: 1px; border-color: #e3e3e3;">
             <tr>
-                <td class="cabecera" colspan="8"><b>Información CFDI</b></td>
+                <td class="cabecera" colspan="8">Información CFDI</td>
             </tr>
             <!--<#if record.recmachcustrecord_mx_rcs_orig_trans?has_content>
                 <tr>
@@ -1941,19 +1952,19 @@
                 <#if certData.custbody_mx_cfdi_qr_code?has_content>
                     <#assign qrcodeImage = "data:image/png;base64, " + certData.custbody_mx_cfdi_qr_code >
                 </#if>
-                <td style="font-size:7px;" rowspan="3" width=" 72px" colspan="1">
+                <td style="font-size:7px;" rowspan="5" width=" 72px" colspan="2">
                 <#if certData.custbody_mx_cfdi_qr_code?has_content>
-                    <img style="width: 70px;height:70px" src="${qrcodeImage}"/>
+                    <img style="width: 150px;height:150px" src="${qrcodeImage}"/>
                 </#if>
                 </td>
             </tr>
             <tr>
-                <td style="font-size:5px;" rowspan="3" width=" 72px" colspan="7">
-                    <p style="font-size:5px;"><b>UUID: </b>${certData.custbody_mx_cfdi_uuid}</p>
-                    <p style="font-size:5px;"><b>Cadena original</b><br/>${certData.custbody_mx_cfdi_cadena_original}
+                <td style="font-size:10px;" rowspan="5" width=" 72px" colspan="6">
+                    <p style="font-size:10px;"><b>UUID: </b>${certData.custbody_mx_cfdi_uuid}</p>
+                    <p style="font-size:10px;"><b>Cadena original</b><br/>${certData.custbody_mx_cfdi_cadena_original}
                     </p>
-                    <p style="font-size:5px;"><b>Firma del CFDI</b><br/>${certData.custbody_mx_cfdi_signature}</p>
-                    <p style="font-size:5px;" rowspan="1">
+                    <p style="font-size:10px;"><b>Firma del CFDI</b><br/>${certData.custbody_mx_cfdi_signature}</p>
+                    <p style="font-size:10px;" rowspan="1">
                         <b>Firma del SAT</b><br/>
                         ${certData.custbody_mx_cfdi_sat_signature}
                     </p>
@@ -1963,9 +1974,9 @@
     <#else>
         <table class="tablascompletas" style="margin-top:5px;">
             <tr>
-                <td colspan="3" class="cabecera"><b>Folio Fiscal</b></td>
-                <td colspan="3" class="cabecera"><b>Certificado Digital SAT</b></td>
-                <td colspan="3" class="cabecera"><b>Fecha de certificación</b></td>
+                <td colspan="3" class="cabecera">Folio Fiscal</td>
+                <td colspan="3" class="cabecera">Certificado Digital SAT</td>
+                <td colspan="3" class="cabecera">Fecha de certificación</td>
             </tr>
             <tr>
                 <#assign datearray = certData.custbody_mx_cfdi_certify_timestamp?split("T")>
@@ -2019,7 +2030,7 @@
         
         <table class="total" style="width: 100%; margin-top: 10px; border: 0px; border-color: #e3e3e3;">
             <tr>
-                <td class="cabecera" colspan="8"><b>Información CFDI</b></td>
+                <td class="cabecera" colspan="8">Información CFDI</td>
             </tr>
             <#--  <#if record.recmachcustrecord_mx_rcs_orig_trans?has_content>
                 <tr>
@@ -2052,20 +2063,20 @@
             </#if>  -->
             <#if certData.custbody_mx_cfdi_qr_code?has_content>
                 <tr>
-                    <td style="font-size:7px;" rowspan="3" width=" 72px" colspan="1">
+                    <td style="font-size:7px;" rowspan="5" width=" 72px" colspan="2">
                     <#assign qrcodeImage = "data:image/png;base64, " + record.custbody_mx_cfdi_qr_code >
                     <#if record.custbody_mx_cfdi_qr_code?has_content>
-                        <img style="width: 70px;height:70px" src="${qrcodeImage}"/>
+                        <img style="width: 150px;height:150px" src="${qrcodeImage}"/>
                     </#if>
                     </td>
                 </tr>
             </#if>
             <tr>
-                <td style="font-size:8px;" rowspan="3" width=" 72px" colspan="7">
-                    <p style="font-size:8px;"><b>UUID: </b>${record.custbody_mx_cfdi_uuid}</p>
-                    <p style="font-size:8px;"><b>Cadena original</b><br/>${record.custbody_mx_cfdi_cadena_original}</p>
-                    <p style="font-size:8px;"><b>Firma del CFDI</b><br/>${record.custbody_mx_cfdi_signature}</p>
-                    <p style="font-size:8px;" rowspan="1">
+                <td style="font-size:10px;" rowspan="5" width=" 72px" colspan="6">
+                    <p style="font-size:10px;"><b>UUID: </b>${record.custbody_mx_cfdi_uuid}</p>
+                    <p style="font-size:10px;"><b>Cadena original</b><br/>${record.custbody_mx_cfdi_cadena_original}</p>
+                    <p style="font-size:10px;"><b>Firma del CFDI</b><br/>${record.custbody_mx_cfdi_signature}</p>
+                    <p style="font-size:10px;" rowspan="1">
                         <b>Firma del SAT</b><br/>
                         ${record.custbody_mx_cfdi_sat_signature}
                     </p>

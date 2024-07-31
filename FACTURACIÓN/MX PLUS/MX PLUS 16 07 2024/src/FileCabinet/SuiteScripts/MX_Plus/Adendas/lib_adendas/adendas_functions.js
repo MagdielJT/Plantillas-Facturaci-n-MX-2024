@@ -1,27 +1,32 @@
 /**
  * @NApiVersion 2.1
  */
-define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../../Factura de Venta/lib/_mxplus_invoice_functions', 'N/format','N/config','N/xml'],
+define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../../Factura de Venta/lib/_mxplus_invoice_functions', 'N/format', 'N/config', 'N/xml'],
     /**
  * @param{log} log
  */
-    (log, file, record, render, search, runtime, invoiceFunctions, format,config,xml) => {
+    (log, file, record, render, search, runtime, invoiceFunctions, format, config, xml) => {
         function horaActual() {
             var respuesta = '';
+    
             try {
                 var d = new Date();
                 var offset = '-5';
+    
                 var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
                 var nd = new Date(utc + (3600000 * offset));
+    
                 var Hours = nd.getHours() < 10 ? '0' + nd.getHours() : nd.getHours();
                 var Minutes = nd.getMinutes() < 10 ? '0' + nd.getMinutes() : nd.getMinutes();
                 var Seconds = nd.getSeconds() < 10 ? '0' + nd.getSeconds() : nd.getSeconds();
+    
                 respuesta = Hours + ':' + Minutes + ':' + Seconds;
+    
             } catch (error) {
-                log.error({title: 'error horaActual', details: JSON.stringify(error)});
+                log.error({ title: 'error horaActual', details: JSON.stringify(error) });
                 respuesta = '00:00:00';
             }
-            log.audit({title: 'respuesta horaActual', details: JSON.stringify(respuesta)});
+            log.audit({ title: 'respuesta horaActual', details: JSON.stringify(respuesta) });
             return respuesta;
         }
         const getAdenda = (adendaId) => {
@@ -1308,7 +1313,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 log.audit({ title: 'formatDate ☠️', details: formatDate });
                 respuesta.data.date = formatDate;
                 // respuesta.data.date = LookupField['trandate'] || '';
-      
+
                 // try {
                 //     respuesta.data.refId = LookupField['custbody_efx_fe_reference_id'] || '';
                 //     if (LookupField['custbody_efx_fe_reference_date']) {
@@ -1338,20 +1343,20 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 respuesta.data.terminos = LookupField['terms'] || '';
                 try {
                     if (respuesta.data.terminos) {
-                    var terminos_obj = record.load({
-                        type: record.Type.TERM,
-                        id: respuesta.data.terminos[0].value
-                    });
+                        var terminos_obj = record.load({
+                            type: record.Type.TERM,
+                            id: respuesta.data.terminos[0].value
+                        });
                         respuesta.data.terminos = terminos_obj.getValue({ fieldId: 'daysuntilnetdue' });
-                }
+                    }
                 } catch (error_terms) {
                     respuesta.data.terminos = '';
                 }
-              //   if (LookupField['custbody_efx_fe_add_ched_foc']) {
-                  //   var horaMexico = horaActual();
-                    respuesta.data.ReferenceDate = formatFecha(LookupField['custbody_efx_fe_reference_date']);
-                  //   respuesta.data.ReferenceDate = fechaSplit(LookupField['custbody_efx_fe_add_ched_foc'], '/', '-', 0, 1, 2, 'T' + horaMexico);
-              //   }
+                //   if (LookupField['custbody_efx_fe_add_ched_foc']) {
+                //   var horaMexico = horaActual();
+                respuesta.data.ReferenceDate = formatFecha(LookupField['custbody_efx_fe_reference_date']);
+                //   respuesta.data.ReferenceDate = fechaSplit(LookupField['custbody_efx_fe_add_ched_foc'], '/', '-', 0, 1, 2, 'T' + horaMexico);
+                //   }
                 respuesta.data.montoTexto = LookupField['custbody_efx_fe_total_text'] || '';
                 respuesta.data.orderIdentification = LookupField['otherrefnum'] || '';
                 if (LookupField['shippingaddress.custrecord_efx_fe_buyer_gln']) {
@@ -1375,7 +1380,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
 
                 var taxTyp = getTaxDetails(param_id, param_type);
                 log.audit({ title: 'taxTyp 👽👽', details: taxTyp });
-                
+
                 var objParametro = {
                     id: param_id,
                     type: param_type,
@@ -1500,7 +1505,6 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 xmlChedrahui += '           <InvoiceCreator>';
                 xmlChedrahui += '               <gln>' + param_obj_Chedrahui.id_proveedor + '</gln>';
                 xmlChedrahui += '               <alternatePartyIdentification type="VA">' + param_obj_Chedrahui.identificador_chedrahui + '</alternatePartyIdentification>';
-                // xmlChedrahui += '               <alternatePartyIdentification type="VA">' + param_obj_Chedrahui.id_proveedor + '</alternatePartyIdentification>';
                 // xmlChedrahui += '               <alternatePartyIdentification type="VA">' + param_obj_Chedrahui.vatregnumber + '</alternatePartyIdentification>';
                 xmlChedrahui += '               <nameAndAddress>';
                 xmlChedrahui += '                   <name>' + param_obj_Chedrahui.name + '</name>';
@@ -1546,7 +1550,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     // xmlChedrahui += '               <AdditionalInformation>';
                     // xmlChedrahui += '                   <referenceIdentification type="ON"></referenceIdentification>';
                     // xmlChedrahui += '               </AdditionalInformation>';
-                    
+
                     xmlChedrahui += '               <tradeItemTaxInformation>';
                     xmlChedrahui += '                   <taxTypeDescription>VAT</taxTypeDescription>';
                     xmlChedrahui += '                   <referenceNumber>' + param_obj_Chedrahui.item[lineitem].taxPercentage + '</referenceNumber>';
@@ -1569,14 +1573,13 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     xmlChedrahui += '               </totalLineAmount>';
                     xmlChedrahui += '           </lineItem>';
                 }
-                
                 xmlChedrahui += '           <totalAmount>';
                 xmlChedrahui += '               <Amount>' + param_obj_Chedrahui.total + '</Amount>';
                 xmlChedrahui += '           </totalAmount>';
                 // xmlChedrahui += '               <Amount>' + param_obj_Chedrahui.total + '</Amount>';
                 xmlChedrahui += '           <TotalAllowanceCharge allowanceOrChargeType="">';
                 xmlChedrahui += '               <Amount>' + '0.00' + '</Amount>';
-                xmlChedrahui += '           </TotalAllowanceCharget>';
+                xmlChedrahui += '           </TotalAllowanceCharge>';
                 xmlChedrahui += '           <baseAmount>';
                 xmlChedrahui += '               <Amount>' + param_obj_Chedrahui.subtotal + '</Amount>';
                 xmlChedrahui += '           </baseAmount>';
@@ -1593,9 +1596,8 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 xmlChedrahui += '   </cfdi:Addenda>';
                 // if(ChedrahuiMySuite){
                 //     respuesta.data = JSON.stringify(param_obj_Chedrahui);
-                
                 // }else{
-                    respuesta.data = xmlChedrahui;
+                respuesta.data = xmlChedrahui;
                 // }
                 respuesta.succes = true;
             } catch (error) {
@@ -1645,7 +1647,8 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 let strContents = ''
                 let content = ''
                 log.debug({ title: 'entra a adendas 🌟🌟', details: 'true' });
-                if (fileObj.size < 10485760) { strContents = fileObj.getContents(); 
+                if (fileObj.size < 10485760) {
+                    strContents = fileObj.getContents();
                     var plantilla = render.create();
                             let resultDirecciones = obtenerObjetoDirecciones(recordObj, entityObj);
                             log.audit({ title: 'resultDirecciones', details: resultDirecciones });
@@ -1690,7 +1693,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                                 }
                             }
                             var SUBSIDIARIES = runtime.isFeatureInEffect({ feature: "SUBSIDIARIES" });
-                            if(SUBSIDIARIES){
+                            if (SUBSIDIARIES) {
     
                                 if (recordObj.getValue({ fieldId: 'subsidiary' }) !== '' && recordObj.getValue({ fieldId: 'subsidiary' }) !== null && typeof recordObj.getValue({ fieldId: 'subsidiary' }) !== undefined) {
                                     var subsidiaria = record.load({
@@ -1706,110 +1709,131 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
     
                             plantilla.templateContent = strContents;
                             content = plantilla.renderAsString();
-                }else{
+                } else {
 
-                switch (adendaName) {
-                    case 'Sabritas':
-                        var objReturn = {
-                            error: [],
-                            xml: '',
-                            schema: '',
-                            obj: {
-                                succes: false,
-                            },
-                            input: {
-                                custparam_tranid: recordObj.id,
-                                custparam_trantype: recordObj.type,
-                                custparam_mode: adendaName,
-                            }
-                        };
-                        objReturn.obj = getDataSabritas(recordObj.id, recordObj.type);
-                        if (objReturn.obj.succes) {
-                            xmlAddenda = getxmlSabritas(objReturn.obj.data);
-                            log.emergency({ title: 'xmlAddenda SABRITAS', details: xmlAddenda });
-                            return xmlAddenda.data
-                        }
-                        break
-                    case 'HomeDepot':
-                        var objReturn = {
-                            error: [],
-                            xml: '',
-                            schema: '',
-                            obj: {
-                                succes: false,
-                            },
-                            input: {
-                                custparam_tranid: recordObj.id,
-                                custparam_trantype: recordObj.type,
-                                custparam_mode: adendaName,
-                            }
-                        };
-                        objReturn.obj = getDataHDepot(recordObj.id, recordObj.type);
-                        if (objReturn.obj.succes) {
-                            xmlAddenda = getXmlHDepot(objReturn.obj.data);
-                            log.emergency({ title: 'xmlAddenda HOMEDEPOT', details: xmlAddenda });
-                            return xmlAddenda.data
-                        }
-                        break
-                    case 'Chedrahui':
-                        var objReturn = {
-                            error: [],
-                            xml: '',
-                            schema: '',
-                            obj: {
-                                succes: false,
-                            },
-                            input: {
-                                custparam_tranid: recordObj.id,
-                                custparam_trantype: recordObj.type,
-                                custparam_mode: adendaName,
-                            }
-                        };
-                        objReturn.obj = getDataChedrahui(recordObj.id, recordObj.type);
-                        if (objReturn.obj.succes) {
-                            xmlAddenda = getXmlChedrahui(objReturn.obj.data);
-                            log.emergency({ title: 'xmlAddenda Chedrahui', details: xmlAddenda });
-                            return xmlAddenda.data
-                        }
-                        break
-                    case 'VNA':
-                        var plantilla = render.create();
-                        // recordObjrecord, tipo_transaccion, tipo_transaccion_gbl, tipo_cp, id_transaccion,esAdenda
-                            var result = invoiceFunctions.obtenercustomobject(recordObj, recordObj.type, recordObj.type, '', recordObj.id, true);
-                        log.audit({ title: 'result', details: result });
-                        var customJson = {
-                            customDataSources: [
-                                {
-                                    format: render.DataSource.OBJECT,
-                                    alias: 'custom',
-                                    data: result,
+                    switch (adendaName) {
+                        case 'Sabritas':
+                            var objReturn = {
+                                error: [],
+                                xml: '',
+                                schema: '',
+                                obj: {
+                                    succes: false,
                                 },
-                            ],
-                        };
-                        if (JSON.stringify(customJson) !== "{}") {
-                            var alias = customJson.customDataSources.length > 0 ? customJson.customDataSources[0].alias : "";
-                            var format = customJson.customDataSources.length > 0 ? customJson.customDataSources[0].format : "";
-                            var data = customJson.customDataSources.length > 0 ? customJson.customDataSources[0].data : "";
-                            log.audit({ title: 'alias', details: JSON.stringify(alias) });
-                            log.audit({ title: 'format', details: JSON.stringify(format) });
-                            log.audit({ title: 'data', details: JSON.stringify(data) });
-                            plantilla.addCustomDataSource({
-                                alias: alias,
+                                input: {
+                                    custparam_tranid: recordObj.id,
+                                    custparam_trantype: recordObj.type,
+                                    custparam_mode: adendaName,
+                                }
+                            };
+                            objReturn.obj = getDataSabritas(recordObj.id, recordObj.type);
+                            if (objReturn.obj.succes) {
+                                xmlAddenda = getxmlSabritas(objReturn.obj.data);
+                                log.emergency({ title: 'xmlAddenda SABRITAS', details: xmlAddenda });
+                                return xmlAddenda.data
+                            }
+                            break
+                        case 'HomeDepot':
+                            var objReturn = {
+                                error: [],
+                                xml: '',
+                                schema: '',
+                                obj: {
+                                    succes: false,
+                                },
+                                input: {
+                                    custparam_tranid: recordObj.id,
+                                    custparam_trantype: recordObj.type,
+                                    custparam_mode: adendaName,
+                                }
+                            };
+                            objReturn.obj = getDataHDepot(recordObj.id, recordObj.type);
+                            if (objReturn.obj.succes) {
+                                xmlAddenda = getXmlHDepot(objReturn.obj.data);
+                                log.emergency({ title: 'xmlAddenda HOMEDEPOT', details: xmlAddenda });
+                                return xmlAddenda.data
+                            }
+                            break
+                        case 'Chedrahui':
+                            var objReturn = {
+                                error: [],
+                                xml: '',
+                                schema: '',
+                                obj: {
+                                    succes: false,
+                                },
+                                input: {
+                                    custparam_tranid: recordObj.id,
+                                    custparam_trantype: recordObj.type,
+                                    custparam_mode: adendaName,
+                                }
+                            };
+                            objReturn.obj = getDataChedrahui(recordObj.id, recordObj.type);
+                            if (objReturn.obj.succes) {
+                                xmlAddenda = getXmlChedrahui(objReturn.obj.data);
+                                log.emergency({ title: 'xmlAddenda Chedrahui', details: xmlAddenda });
+                                return xmlAddenda.data
+                            }
+                            break
+                        case 'VNA':
+                            var plantilla = render.create();
+                            // recordObjrecord, tipo_transaccion, tipo_transaccion_gbl, tipo_cp, id_transaccion,esAdenda
+                            var result = invoiceFunctions.obtenercustomobject(recordObj, recordObj.type, recordObj.type, '', recordObj.id, true);
+                            log.audit({ title: 'result', details: result });
+                            var customJson = {
+                                customDataSources: [
+                                    {
+                                        format: render.DataSource.OBJECT,
+                                        alias: 'custom',
+                                        data: result,
+                                    },
+                                ],
+                            };
+                            if (JSON.stringify(customJson) !== "{}") {
+                                var alias = customJson.customDataSources.length > 0 ? customJson.customDataSources[0].alias : "";
+                                var format = customJson.customDataSources.length > 0 ? customJson.customDataSources[0].format : "";
+                                var data = customJson.customDataSources.length > 0 ? customJson.customDataSources[0].data : "";
+                                log.audit({ title: 'alias', details: JSON.stringify(alias) });
+                                log.audit({ title: 'format', details: JSON.stringify(format) });
+                                log.audit({ title: 'data', details: JSON.stringify(data) });
+                                plantilla.addCustomDataSource({
+                                    alias: alias,
                                     format: format,
-                                data: data
+                                    data: data
+                                });
+                            }
+                            plantilla.addRecord({
+                                templateName: entityObj.type,
+                                record: entityObj,
                             });
+                            plantilla.addRecord({
+                                templateName: 'transaction',
+                                record: recordObj,
+                            });
+                            plantilla.templateContent = strContents;
+                            content = plantilla.renderAsString();
+                            break
+                        case 'BIOPapel': {
+                            var objReturn = {
+                                error: [],
+                                xml: '',
+                                schema: '',
+                                obj: {
+                                    succes: false,
+                                },
+                                input: {
+                                    custparam_tranid: recordObj.id,
+                                    custparam_trantype: recordObj.type,
+                                    custparam_mode: adendaName,
+                                }
+                            };
+                            objReturn.obj = getDataBioPapel(recordObj.id, recordObj.type);
+                            if (objReturn.obj.succes) {
+                                xmlAddenda = getxmlBioPapel(objReturn.obj.data);
+                                return xmlAddenda.data
+                            }
+                            break;
                         }
-                        plantilla.addRecord({
-                            templateName: entityObj.type,
-                            record: entityObj,
-                        });
-                        plantilla.addRecord({
-                            templateName: 'transaction',
-                            record: recordObj,
-                        });
-                        plantilla.templateContent = strContents;
-                        content = plantilla.renderAsString();
-                        break
                         case 'Ofimart':
                             var plantilla = render.create();
                             // recordObjrecord, tipo_transaccion, tipo_transaccion_gbl, tipo_cp, id_transaccion,esAdenda
@@ -1906,71 +1930,202 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                             }
                             break;
                         }
-                    default:
-                        var plantilla = render.create();
-                        let resultDirecciones = obtenerObjetoDirecciones(recordObj, entityObj);
-                        log.audit({ title: 'resultDirecciones', details: resultDirecciones });
-                        var obj_direnvst = JSON.stringify(resultDirecciones.shipaddress);
-                        var obj_direnv = JSON.parse(obj_direnvst);
-                        if (obj_direnv["fields"]) {
-                            plantilla.addCustomDataSource({
-                                alias: 'shipaddress',
-                                format: render.DataSource.OBJECT,
-                                data: obj_direnv["fields"]
-                            });
-                        }
-                        var obj_dirbillst = JSON.stringify(resultDirecciones.billaddress);
-                        var obj_dirbill = JSON.parse(obj_dirbillst);
-                        if (obj_dirbill["fields"]) {
-                            plantilla.addCustomDataSource({
-                                alias: 'billaddress',
-                                format: render.DataSource.OBJECT,
-                                data: obj_dirbill["fields"]
-                            });
-                        }
-                        plantilla.addRecord({
-                            templateName: entityObj.type,
-                            record: entityObj,
-                        });
-                        plantilla.addRecord({
-                            templateName: 'transaction',
-                            record: recordObj,
-                        });
-                        // VNA detalle de inventario
-                        if (runtime.accountId.includes('6212323')) {
-                            let obtenerObjs = obtenObjs(recordObj.id, recordObj.type);
-                            log.audit({ title: 'obtenerObjs.obj_detalleinv', details: obtenerObjs.obj_detalleinv });
-                            var obj_detinvst = JSON.stringify(obtenerObjs.obj_detalleinv);
-                            var obj_detinv = JSON.parse(obj_detinvst);
-                            if (obj_detinv) {
+                        default:
+                            var plantilla = render.create();
+                            let resultDirecciones = obtenerObjetoDirecciones(recordObj, entityObj);
+                            log.audit({ title: 'resultDirecciones', details: resultDirecciones });
+                            var obj_direnvst = JSON.stringify(resultDirecciones.shipaddress);
+                            var obj_direnv = JSON.parse(obj_direnvst);
+                            if (obj_direnv["fields"]) {
                                 plantilla.addCustomDataSource({
-                                    alias: 'detalleInventario',
+                                    alias: 'shipaddress',
                                     format: render.DataSource.OBJECT,
-                                    data: obtenerObjs.obj_detalleinv
+                                    data: obj_direnv["fields"]
                                 });
                             }
-                        }
-                        var SUBSIDIARIES = runtime.isFeatureInEffect({ feature: "SUBSIDIARIES" });
-                        if(SUBSIDIARIES){
-                            if (recordObj.getValue({ fieldId: 'subsidiary' }) !== '' && recordObj.getValue({ fieldId: 'subsidiary' }) !== null && typeof recordObj.getValue({ fieldId: 'subsidiary' }) !== undefined) {
-                                var subsidiaria = record.load({
-                                    type: record.Type.SUBSIDIARY,
-                                    id: recordObj.getValue({ fieldId: 'subsidiary' })
-                                });
-                                plantilla.addRecord({
-                                    templateName: 'subsidiary',
-                                    record: subsidiaria,
+                            var obj_dirbillst = JSON.stringify(resultDirecciones.billaddress);
+                            var obj_dirbill = JSON.parse(obj_dirbillst);
+                            if (obj_dirbill["fields"]) {
+                                plantilla.addCustomDataSource({
+                                    alias: 'billaddress',
+                                    format: render.DataSource.OBJECT,
+                                    data: obj_dirbill["fields"]
                                 });
                             }
-                        }
-                        plantilla.templateContent = strContents;
-                        content = plantilla.renderAsString();
+                            plantilla.addRecord({
+                                templateName: entityObj.type,
+                                record: entityObj,
+                            });
+                            plantilla.addRecord({
+                                templateName: 'transaction',
+                                record: recordObj,
+                            });
+                            // VNA detalle de inventario
+                            if (runtime.accountId.includes('6212323')) {
+                                let obtenerObjs = obtenObjs(recordObj.id, recordObj.type);
+                                log.audit({ title: 'obtenerObjs.obj_detalleinv', details: obtenerObjs.obj_detalleinv });
+                                var obj_detinvst = JSON.stringify(obtenerObjs.obj_detalleinv);
+                                var obj_detinv = JSON.parse(obj_detinvst);
+                                if (obj_detinv) {
+                                    plantilla.addCustomDataSource({
+                                        alias: 'detalleInventario',
+                                        format: render.DataSource.OBJECT,
+                                        data: obtenerObjs.obj_detalleinv
+                                    });
+                                }
+                            }
+                            var SUBSIDIARIES = runtime.isFeatureInEffect({ feature: "SUBSIDIARIES" });
+                            if (SUBSIDIARIES) {
+    
+                                if (recordObj.getValue({ fieldId: 'subsidiary' }) !== '' && recordObj.getValue({ fieldId: 'subsidiary' }) !== null && typeof recordObj.getValue({ fieldId: 'subsidiary' }) !== undefined) {
+                                    var subsidiaria = record.load({
+                                        type: record.Type.SUBSIDIARY,
+                                        id: recordObj.getValue({ fieldId: 'subsidiary' })
+                                    });
+                                    plantilla.addRecord({
+                                        templateName: 'subsidiary',
+                                        record: subsidiaria,
+                                    });
+                                }
+                            }
+    
+                            plantilla.templateContent = strContents;
+                            content = plantilla.renderAsString();
                     }
                 }
                 return content;
             } catch (err) {
                 log.error({ title: 'Error occurred in getAdendaContents', details: err });
             }
+        }
+        function getDataBioPapel(param_id, param_type) {
+            var respuesta = {
+                succes: false,
+                data: {
+                    custentity_efx_fe_add_bp_idprov: '',
+                    otherrefnum: '',
+                    custbody_efx_fe_add_bp_idrec: '',
+                    custbody_efx_fe_add_bp_nrem: '',
+                    item: [
+                    ],
+    
+                }
+            };
+            try {
+                var arrayColumn = [
+                    'customer.custentity_efx_fe_add_bp_idprov',
+                    'otherrefnum',
+                    'custbody_efx_fe_add_bp_idrec',
+                    'custbody_efx_fe_add_bp_nrem',
+    
+                ]
+    
+                var LookupField = search.lookupFields({
+                    type: search.Type.TRANSACTION,
+                    id: param_id,
+                    columns: arrayColumn
+                });
+    
+                log.audit({title: 'LookupField', details: JSON.stringify(LookupField)});
+    
+                respuesta.data.custentity_efx_fe_add_bp_idprov = LookupField['customer.custentity_efx_fe_add_bp_idprov'] || '';
+                respuesta.data.otherrefnum = LookupField['otherrefnum'] || '';
+                respuesta.data.custbody_efx_fe_add_bp_idrec = LookupField['custbody_efx_fe_add_bp_idrec'] || '';
+                respuesta.data.custbody_efx_fe_add_bp_nrem = LookupField['custbody_efx_fe_add_bp_nrem'] || '';
+    
+                var objParametro = {
+                    id: param_id,
+                    type: param_type,
+                    sublist: 'item',
+                    bodyFieldValue: [],
+                    bodyFieldText: [],
+                    lineField: [
+                        'itemtype',
+                        'item',
+                        'rate',
+                        'custcol_efx_fe_upc_code',
+                        'amount',
+                        'quantity',
+                        'grossamt',
+                        'description',
+                        'custcol_efx_fe_add_bp_poc',
+                    ],
+                };
+    
+                var transactionField = getTransactionField(objParametro);
+                if (transactionField.succes) {
+                    for (var ir in transactionField.data.lineField) {
+                        if (
+                            transactionField.data.lineField[ir].itemtype == 'InvtPart' ||
+                            transactionField.data.lineField[ir].itemtype == 'Service' ||
+                            transactionField.data.lineField[ir].itemtype == 'Kit' ||
+                            transactionField.data.lineField[ir].itemtype == 'NonInvtPart' ||
+                            transactionField.data.lineField[ir].itemtype == 'Markup'
+                        ) {
+                            var quantity = transactionField.data.lineField[ir].quantity || 0;
+    
+                            respuesta.data.item.push({
+                                sku: transactionField.data.lineField[ir].custcol_efx_fe_upc_code || '',
+                                quantity: quantity,
+                                name: transactionField.data.lineField[ir].itemTEXT || '',
+                                rate: transactionField.data.lineField[ir].rate || '',
+                                amount: transactionField.data.lineField[ir].amount || '',
+                                grossAmount: transactionField.data.lineField[ir].grossamt || '',
+                                description: transactionField.data.lineField[ir].description || '',
+                                custcol_efx_fe_add_bp_poc: transactionField.data.lineField[ir].custcol_efx_fe_add_bp_poc || '',
+                            });
+                        }
+                    }
+                    respuesta.succes = true;
+                }
+            } catch (error) {
+                log.error({title: 'error getDataChedrahui', details: JSON.stringify(error)});
+                respuesta.succes = false;
+            }
+            log.audit({title: 'respuesta getDataChedrahui', details: JSON.stringify(respuesta)});
+            return respuesta;
+        }
+    
+        function getxmlBioPapel(param_obj_BioPapel) {
+            var respuesta = {
+                succes: false,
+                data: '',
+                xmlns: '',
+            };
+            try {
+                {
+    
+                }
+    
+                var xmlBioPapel = '';
+                xmlBioPapel += '   <cfdi:Addenda>';
+                xmlBioPapel += '       <BioPappel';
+                xmlBioPapel += '           Version="1.0"';
+                xmlBioPapel += '           IdProveedor="'+param_obj_BioPapel.custentity_efx_fe_add_bp_idprov+'">';
+                xmlBioPapel += '           <OrdenCompra NumeroOC="'+param_obj_BioPapel.otherrefnum+'">';
+                xmlBioPapel += '               <Recepciones>';
+                xmlBioPapel += '               <Recepcion IdRecepcion="'+param_obj_BioPapel.custbody_efx_fe_add_bp_idrec+'" NoRemision="'+param_obj_BioPapel.custbody_efx_fe_add_bp_nrem+'">';
+                for (var lineitem in param_obj_BioPapel.item) {
+                    xmlBioPapel += '                   <Concepto ValorUnitario="' + param_obj_BioPapel.item[lineitem].rate.toFixed(2) + '" NoIdentificacion="' + param_obj_BioPapel.item[lineitem].sku + '" PosOC="' + param_obj_BioPapel.item[lineitem].custcol_efx_fe_add_bp_poc + '" Importe="' + param_obj_BioPapel.item[lineitem].amount.toFixed(2) + '" Cantidad="' + param_obj_BioPapel.item[lineitem].quantity + '" Descripcion="' + param_obj_BioPapel.item[lineitem].description + '"/>';
+                }
+    
+                xmlBioPapel += '   </Recepcion>';
+                xmlBioPapel += '   </Recepciones>';
+                xmlBioPapel += '   </OrdenCompra>';
+                xmlBioPapel += '   </BioPappel>';
+                xmlBioPapel += '   </cfdi:Addenda>';
+    
+                    respuesta.data = xmlBioPapel;
+    
+    
+                respuesta.succes = true;
+    
+            } catch (error) {
+                log.error({title: 'error getXmlChedrahui', details: JSON.stringify(error)});
+                respuesta.succes = false;
+            }
+            log.audit({title: 'respuesta getXmlChedrahui', details: JSON.stringify(respuesta)});
+            return respuesta;
         }
         function getDataHeb(param_id, param_type) {
             var SUBSIDIARIES = runtime.isFeatureInEffect({ feature: "SUBSIDIARIES" });
@@ -2062,18 +2217,18 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     'shippingaddress.custrecord_efx_fe_buyer_gln',
                     'shippingaddress.custrecord_efx_fe_lugar_gln',
                 ];
-                log.audit({title:'SUBSIDIARIES 📍',details:SUBSIDIARIES });
-                if(SUBSIDIARIES==false){
-                    arrayColumn=arrayColumn.filter((item)=>{return item!='subsidiary'})
+                log.audit({ title: 'SUBSIDIARIES 📍', details: SUBSIDIARIES });
+                if (SUBSIDIARIES == false) {
+                    arrayColumn = arrayColumn.filter((item) => { return item != 'subsidiary' })
                 }
-                log.audit({title:'arrayColumn',details:arrayColumn});
+                log.audit({ title: 'arrayColumn', details: arrayColumn });
                 var LookupField = search.lookupFields({
                     type: search.Type.TRANSACTION,
                     id: param_id,
                     columns: arrayColumn
                 });
     
-                log.audit({title: 'LookupField', details: JSON.stringify(LookupField)});
+                log.audit({ title: 'LookupField', details: JSON.stringify(LookupField) });
     
     
                 respuesta.data.folio = LookupField['tranid'] || '';
@@ -2109,7 +2264,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
     
                 var sub_calle = '';
                 var sub_vat = '';
-                if(SUBSIDIARIES){
+                if (SUBSIDIARIES) {
                     var arrayColumn_sub = [
                         'taxidnum',
                         'address.custrecord_streetname',
@@ -2126,15 +2281,15 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                         columns: arrayColumn_sub
                     });
     
-                    respuesta.data.seller.calle =  LookupField_sub['address.custrecord_streetname'] || '';
-                    respuesta.data.seller.name =  LookupField_sub['address.addressee'] || '';
-                    respuesta.data.seller.city =  LookupField_sub['address.city'] || '';
-                    respuesta.data.seller.state =  LookupField_sub['address.state'] || '';
-                    respuesta.data.seller.country =  LookupField_sub['address.country'][0].text || '';
-                    respuesta.data.seller.zip =  LookupField_sub['address.zip'] || '';
-                    respuesta.data.seller.vat =  LookupField_sub['taxidnum'] || '';
+                    respuesta.data.seller.calle = LookupField_sub['address.custrecord_streetname'] || '';
+                    respuesta.data.seller.name = LookupField_sub['address.addressee'] || '';
+                    respuesta.data.seller.city = LookupField_sub['address.city'] || '';
+                    respuesta.data.seller.state = LookupField_sub['address.state'] || '';
+                    respuesta.data.seller.country = LookupField_sub['address.country'][0].text || '';
+                    respuesta.data.seller.zip = LookupField_sub['address.zip'] || '';
+                    respuesta.data.seller.vat = LookupField_sub['taxidnum'] || '';
     
-                }else{
+                } else {
     
                 }
     
@@ -2143,21 +2298,21 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 respuesta.data.DeliveryNote.referenceIdentification = LookupField['custbody_efx_heb_folio_recibo'] || '';
                 respuesta.data.DeliveryNote.ReferenceDate = trandateFormato;
     
-                if(LookupField['shippingaddress.custrecord_efx_fe_buyer_gln']){
+                if (LookupField['shippingaddress.custrecord_efx_fe_buyer_gln']) {
                     respuesta.data.buyer.gln = LookupField['shippingaddress.custrecord_efx_fe_buyer_gln'] || '';
-                }else{
+                } else {
                     respuesta.data.buyer.gln = LookupField['customer.custentity_efx_heb_buyergln'] || '';
                 }
     
                 respuesta.data.buyer.text = '99';
                 respuesta.data.buyer.buyer = LookupField['customer.custentity_efx_heb_buyerperson'] || '';
     
-                respuesta.data.seller.gln =  LookupField['customer.custentity_efx_fe_heb_seller'] || '';
+                respuesta.data.seller.gln = LookupField['customer.custentity_efx_fe_heb_seller'] || '';
                 respuesta.data.seller.alternatePartyIdentification = LookupField['customer.custentity_efx_heb_proveedor'] || '';
     
     
                 respuesta.data.shipTo.gln = LookupField['billingaddress.custrecord_efx_fe_heb_shipto'];
-                log.audit({title:"LookupField['billingaddress.custrecord_efx_fe_heb_shipto']",details:LookupField['billingaddress.custrecord_efx_fe_heb_shipto']});
+                log.audit({ title: "LookupField['billingaddress.custrecord_efx_fe_heb_shipto']", details: LookupField['billingaddress.custrecord_efx_fe_heb_shipto'] });
                 respuesta.data.shipTo.streetAddressOne = LookupField['billingaddress.custrecord_streetname'];
                 respuesta.data.shipTo.colonia = LookupField['billingaddress.custrecord_colonia'];
                 respuesta.data.shipTo.municipio = LookupField['billingaddress.custrecord_village'];
@@ -2168,7 +2323,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 respuesta.data.shipTo.nombre_dir = LookupField['billingaddress.addressee'];
     
                 respuesta.data.shipTo.gln_envio = LookupField['shippingaddress.custrecord_efx_fe_heb_shipto'];
-                log.audit({title:"LookupField['shippingaddress.custrecord_efx_fe_heb_shipto']",details:LookupField['shippingaddress.custrecord_efx_fe_heb_shipto']});
+                log.audit({ title: "LookupField['shippingaddress.custrecord_efx_fe_heb_shipto']", details: LookupField['shippingaddress.custrecord_efx_fe_heb_shipto'] });
                 respuesta.data.shipTo.streetAddressOne_envio = LookupField['shippingaddress.custrecord_streetname'];
                 respuesta.data.shipTo.colonia_envio = LookupField['shippingaddress.custrecord_colonia'];
                 respuesta.data.shipTo.municipio_envio = LookupField['shippingaddress.custrecord_village'];
@@ -2185,22 +2340,22 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 respuesta.data.Amount = '0.0';
                 respuesta.data.exhrate = LookupField['exchangerate'];
                 respuesta.data.terminos = LookupField['terms'];
-                log.audit({title: 'respuesta.data.terminos', details: JSON.stringify(respuesta.data.terminos)});
-                log.audit({title: 'respuesta.data.terminos', details: JSON.stringify(respuesta.data.terminos[0].value)});
-                try{
-                if(respuesta.data.terminos){
+                log.audit({ title: 'respuesta.data.terminos', details: JSON.stringify(respuesta.data.terminos) });
+                log.audit({ title: 'respuesta.data.terminos', details: JSON.stringify(respuesta.data.terminos[0].value) });
+                try {
+                    if (respuesta.data.terminos) {
                     var terminos_obj = record.load({
                         type: record.Type.TERM,
                         id: respuesta.data.terminos[0].value
                     });
-                    respuesta.data.terminos = terminos_obj.getValue({fieldId:'daysuntilnetdue'});
+                    respuesta.data.terminos = terminos_obj.getValue({ fieldId: 'daysuntilnetdue' });
                 }
-                }catch(error_terms){
-                    respuesta.data.terminos  = '';
+                } catch (error_terms) {
+                    respuesta.data.terminos = '';
                 }
     
     
-                log.audit({title: 'respuesta.data.terminos', details: JSON.stringify(respuesta.data.terminos)});
+                log.audit({ title: 'respuesta.data.terminos', details: JSON.stringify(respuesta.data.terminos) });
     
                 var objParametro = {
                     id: param_id,
@@ -2229,15 +2384,15 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     for (var ir in transactionField.data.lineField) {
                         //buscar descuentos
                         var descuento_linea = 0;
-                        var linea_disc = parseInt(ir)+1;
+                        var linea_disc = parseInt(ir) + 1;
                         var tamano_linefield = Object.keys(transactionField.data.lineField).length;
-                        log.audit({title:'linea_disc',details: linea_disc});
-                        log.audit({title:'tamano_linefield',details: tamano_linefield});
-                        if(linea_disc<tamano_linefield){
-                            if(transactionField.data.lineField[linea_disc].itemtype == 'Discount'){
+                        log.audit({ title: 'linea_disc', details: linea_disc });
+                        log.audit({ title: 'tamano_linefield', details: tamano_linefield });
+                        if (linea_disc < tamano_linefield) {
+                            if (transactionField.data.lineField[linea_disc].itemtype == 'Discount') {
                                 descuento_linea = transactionField.data.lineField[linea_disc].amount;
-                                if(descuento_linea<0){
-                                    descuento_linea = descuento_linea* (-1);
+                                if (descuento_linea < 0) {
+                                    descuento_linea = descuento_linea * (-1);
                                 }
                             }
                         }
@@ -2267,11 +2422,11 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
     
                             var quantity = transactionField.data.lineField[ir].quantity || 0;
                             var quantityType = (parseFloat(quantity)).toFixed(3) || 0;
-                            descuento_total_lineas = descuento_total_lineas+descuento_linea;
+                            descuento_total_lineas = descuento_total_lineas + descuento_linea;
                             array_items.push(transactionField.data.lineField[ir].item || '');
                             respuesta.data.item.push({
                                 item: transactionField.data.lineField[ir].item || '',
-                                num_p_cliente : '',
+                                num_p_cliente: '',
                                 sku: transactionField.data.lineField[ir].custcol_efx_fe_upc_code || '',
                                 name: transactionField.data.lineField[ir].description || '',
                                 unitOfMeasure: 'CAJ',
@@ -2280,8 +2435,8 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                                 grossamt: transactionField.data.lineField[ir].grossamt || '',
                                 quantity: quantityType,
                                 // Amount: transactionField.data.lineField[ir].amount || '',
-                                iva_rate:(json_tax_col.iva.rate).toFixed(4),
-                                iva_importe:(json_tax_col.iva.importe),
+                                iva_rate: (json_tax_col.iva.rate).toFixed(4),
+                                iva_importe: (json_tax_col.iva.importe),
                                 ieps_rate: (json_tax_col.ieps.rate).toFixed(4),
                                 ieps_importe: (json_tax_col.ieps.importe),
                                 discount: descuento_linea,
@@ -2297,38 +2452,38 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                         }
                     }
                     var descuento_rate = 0;
-                    log.audit({title:'transactionField.data.bodyFieldValue.discounttotal',details:transactionField.data.bodyFieldValue.discounttotal});
-                    log.audit({title:'descuento_total_lineas',details:descuento_total_lineas});
-                    if(transactionField.data.bodyFieldValue.discounttotal){
-                        if(total_transaccion=='.00'){
+                    log.audit({ title: 'transactionField.data.bodyFieldValue.discounttotal', details: transactionField.data.bodyFieldValue.discounttotal });
+                    log.audit({ title: 'descuento_total_lineas', details: descuento_total_lineas });
+                    if (transactionField.data.bodyFieldValue.discounttotal) {
+                        if (total_transaccion == '.00') {
                             total_transaccion = 0;
                         }
-                        if(total_transaccion==0){
+                        if (total_transaccion == 0) {
                             descuento_rate = 100;
-                        }else{
+                        } else {
                             descuento_total_lineas = parseFloat(transactionField.data.bodyFieldValue.discounttotal);
-                            respuesta.data.descuentototal =  transactionField.data.bodyFieldValue.discounttotal;
-                            descuento_rate = (descuento_total_lineas*100)/parseFloat(total_transaccion);
+                            respuesta.data.descuentototal = transactionField.data.bodyFieldValue.discounttotal;
+                            descuento_rate = (descuento_total_lineas * 100) / parseFloat(total_transaccion);
                         }
     
-                    }else{
-                        if(total_transaccion=='.00'){
+                    } else {
+                        if (total_transaccion == '.00') {
                             total_transaccion = 0;
                         }
-                        if(total_transaccion==0){
+                        if (total_transaccion == 0) {
                             descuento_rate = 100;
-                        }else{
+                        } else {
                             respuesta.data.descuentototal = descuento_total_lineas.toFixed(2);
-                            descuento_rate = (parseFloat(descuento_total_lineas)*100)/parseFloat(total_transaccion);
-                            log.audit({title:'descuento_rate',details:descuento_rate});
+                            descuento_rate = (parseFloat(descuento_total_lineas) * 100) / parseFloat(total_transaccion);
+                            log.audit({ title: 'descuento_rate', details: descuento_rate });
                         }
     
                     }
                     respuesta.data.rateDiscount = descuento_rate.toFixed(2);
-                    log.audit({title:'respuesta.data.rateDiscount',details:respuesta.data.rateDiscount});
+                    log.audit({ title: 'respuesta.data.rateDiscount', details: respuesta.data.rateDiscount });
                     try {
-                        log.audit({title:'array_items',details: array_items});
-                        log.audit({title:'cliente_id',details: cliente_id});
+                        log.audit({ title: 'array_items', details: array_items });
+                        log.audit({ title: 'cliente_id', details: cliente_id });
                         var search_num_client = search.create({
                             type: 'customrecord_scm_customerpartnumber',
                             filters: [
@@ -2339,38 +2494,38 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                                 ['custrecord_scm_cpn_customer', search.Operator.IS, cliente_id[0].value]
                             ],
                             columns: [
-                                search.createColumn({name: 'name'}),
-                                search.createColumn({name: 'custrecord_scm_cpn_item'}),
-                                search.createColumn({name: 'custrecord_scm_cpn_customer'}),
+                                search.createColumn({ name: 'name' }),
+                                search.createColumn({ name: 'custrecord_scm_cpn_item' }),
+                                search.createColumn({ name: 'custrecord_scm_cpn_customer' }),
     
                             ]
                         });
     
                         var ejecutar = search_num_client.run();
                         var resultado = ejecutar.getRange(0, 100);
-                        log.audit({title:'resultado.length',details: resultado.length});
+                        log.audit({ title: 'resultado.length', details: resultado.length });
                         for (var itemLine in respuesta.data.item) {
                             for (var x = 0; x < resultado.length; x++) {
-                                var articulo_cliente = resultado[x].getValue({name: 'custrecord_scm_cpn_item'}) || '';
-                                if(articulo_cliente == respuesta.data.item[itemLine].item){
-                                    respuesta.data.item[itemLine].num_p_cliente = resultado[x].getValue({name: 'name'}) || '';
+                                var articulo_cliente = resultado[x].getValue({ name: 'custrecord_scm_cpn_item' }) || '';
+                                if (articulo_cliente == respuesta.data.item[itemLine].item) {
+                                    respuesta.data.item[itemLine].num_p_cliente = resultado[x].getValue({ name: 'name' }) || '';
                                 }
                             }
                         }
-                    }catch(error_buscar){
-                        log.audit({title:'error_buscar_num_cliente',details: error_buscar})
+                    } catch (error_buscar) {
+                        log.audit({ title: 'error_buscar_num_cliente', details: error_buscar })
                     }
                     respuesta.succes = true;
                 }
             } catch (error) {
-                log.error({title: 'error getDataHeb', details: JSON.stringify(error)});
+                log.error({ title: 'error getDataHeb', details: JSON.stringify(error) });
                 respuesta.succes = false;
             }
-            log.audit({title: 'respuesta getDataHeb', details: JSON.stringify(respuesta)});
+            log.audit({ title: 'respuesta getDataHeb', details: JSON.stringify(respuesta) });
             return respuesta;
         }
     
-        function getXmlHeb(param_obj_Heb,HEBamece) {
+        function getXmlHeb(param_obj_Heb, HEBamece) {
             var respuesta = {
                 succes: false,
                 data: '',
@@ -2415,7 +2570,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 }
                 xmlHeb += '     </detallista:AdditionalInformation> ';
     
-                if(param_obj_Heb.DeliveryNote.referenceIdentification){
+                if (param_obj_Heb.DeliveryNote.referenceIdentification) {
                     xmlHeb += '     <detallista:DeliveryNote> ';
                     xmlHeb += '         <detallista:referenceIdentification>' + param_obj_Heb.DeliveryNote.referenceIdentification + '</detallista:referenceIdentification> ';
                     xmlHeb += '         <detallista:ReferenceDate>' + param_obj_Heb.DeliveryNote.ReferenceDate + '</detallista:ReferenceDate> ';
@@ -2438,32 +2593,32 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 xmlHeb += '     </detallista:seller> ';
     
                 xmlHeb += '     <detallista:shipTo> ';
-                if(param_obj_Heb.shipTo.gln_envio){
+                if (param_obj_Heb.shipTo.gln_envio) {
                     xmlHeb += '         <detallista:gln>' + param_obj_Heb.shipTo.gln_envio + '</detallista:gln> ';
-                }else{
+                } else {
                     xmlHeb += '         <detallista:gln>' + param_obj_Heb.shipTo.gln + '</detallista:gln> ';
                 }
                 xmlHeb += '         <detallista:nameAndAddress> ';
-                if(param_obj_Heb.shipTo.nombre_dir_envio){
+                if (param_obj_Heb.shipTo.nombre_dir_envio) {
                     xmlHeb += '             <detallista:name>' + param_obj_Heb.shipTo.nombre_dir_envio + '</detallista:name> ';
-                }else{
+                } else {
                     xmlHeb += '             <detallista:name>' + param_obj_Heb.shipTo.nombre_dir + '</detallista:name> ';
                 }
     
-                if(param_obj_Heb.shipTo.streetAddressOne_envio){
+                if (param_obj_Heb.shipTo.streetAddressOne_envio) {
                     xmlHeb += '             <detallista:streetAddressOne>' + param_obj_Heb.shipTo.streetAddressOne_envio + '</detallista:streetAddressOne> ';
-                }else{
+                } else {
                     xmlHeb += '             <detallista:streetAddressOne>' + param_obj_Heb.shipTo.streetAddressOne + '</detallista:streetAddressOne> ';
                 }
     
-                if(param_obj_Heb.shipTo.city_envio){
+                if (param_obj_Heb.shipTo.city_envio) {
                     xmlHeb += '             <detallista:city>' + param_obj_Heb.shipTo.city_envio + '</detallista:city> ';
-                }else{
+                } else {
                     xmlHeb += '             <detallista:city>' + param_obj_Heb.shipTo.city + '</detallista:city> ';
                 }
-                if(param_obj_Heb.shipTo.postalCode_envio){
+                if (param_obj_Heb.shipTo.postalCode_envio) {
                     xmlHeb += '             <detallista:postalCode>' + param_obj_Heb.shipTo.postalCode_envio + '</detallista:postalCode> ';
-                }else{
+                } else {
                     xmlHeb += '             <detallista:postalCode>' + param_obj_Heb.shipTo.postalCode + '</detallista:postalCode> ';
                 }
     
@@ -2491,9 +2646,9 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 xmlHeb += '         <detallista:netPayment netPaymentTermsType="BASIC_NET"> ';
                 xmlHeb += '             <detallista:paymentTimePeriod> ';
                 xmlHeb += '                 <detallista:timePeriodDue timePeriod="DAYS"> ';
-                if(param_obj_Heb.terminos){
+                if (param_obj_Heb.terminos) {
                     xmlHeb += '                     <detallista:value>' + param_obj_Heb.terminos + '</detallista:value> ';
-                }else {
+                } else {
                     xmlHeb += '                     <detallista:value></detallista:value> ';
                 }
     
@@ -2518,13 +2673,13 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     xmlHeb += '             <detallista:tradeItemIdentification> ';
                     xmlHeb += '                 <detallista:gtin>' + param_obj_Heb.item[itemLine].sku + '</detallista:gtin> ';
                     xmlHeb += '             </detallista:tradeItemIdentification> ';
-                    if(param_obj_Heb.item[itemLine].num_p_cliente){
+                    if (param_obj_Heb.item[itemLine].num_p_cliente) {
                         xmlHeb += '             <detallista:alternateTradeItemIdentification type="BUYER_ASSIGNED">' + param_obj_Heb.item[itemLine].num_p_cliente + '</detallista:alternateTradeItemIdentification> ';
-                    }else{
+                    } else {
                         xmlHeb += '             <detallista:alternateTradeItemIdentification type="BUYER_ASSIGNED">' + param_obj_Heb.item[itemLine].sku + '</detallista:alternateTradeItemIdentification> ';
                     }
                     xmlHeb += '             <detallista:tradeItemDescriptionInformation language="ES"> ';
-                    xmlHeb += '                 <detallista:longText>' + (xml.escape({xmlText: param_obj_Heb.item[itemLine].name})).substr(0,34) + '</detallista:longText> ';
+                    xmlHeb += '                 <detallista:longText>' + (xml.escape({ xmlText: param_obj_Heb.item[itemLine].name })).substr(0, 34) + '</detallista:longText> ';
                     xmlHeb += '             </detallista:tradeItemDescriptionInformation> ';
                     xmlHeb += '             <detallista:invoicedQuantity unitOfMeasure="' + param_obj_Heb.item[itemLine].unitOfMeasure + '">' + param_obj_Heb.item[itemLine].quantity + '</detallista:invoicedQuantity> ';
                     xmlHeb += '             <detallista:aditionalQuantity QuantityType="NUM_CONSUMER_UNITS">' + param_obj_Heb.item[itemLine].quantity + '</detallista:aditionalQuantity> ';
@@ -2588,18 +2743,18 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 xmlHeb += ' </detallista:detallista> ';
     
     
-                if(HEBamece){
+                if (HEBamece) {
                     respuesta.data = JSON.stringify(param_obj_Heb);
-                }else{
+                } else {
                     respuesta.data = xmlHeb;
                 }
                 respuesta.succes = true;
     
             } catch (error) {
-                log.error({title: 'error getXmlHeb', details: JSON.stringify(error)});
+                log.error({ title: 'error getXmlHeb', details: JSON.stringify(error) });
                 respuesta.succes = false;
             }
-            log.audit({title: 'respuesta getXmlHeb', details: JSON.stringify(respuesta)});
+            log.audit({ title: 'respuesta getXmlHeb', details: JSON.stringify(respuesta) });
             return respuesta;
         }
         function obtenObjs(tranid, trantype) {
