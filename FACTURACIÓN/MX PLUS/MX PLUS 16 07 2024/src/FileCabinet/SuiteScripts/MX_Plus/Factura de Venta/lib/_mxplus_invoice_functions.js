@@ -1404,10 +1404,10 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                     obj_data_iva.Impuesto = tax_json.iva.factor;
                     obj_data_iva.TasaOCuota = formattedNumber;
                     obj_data_iva.TipoFactor = 'Tasa';
-                    log.debug({ title: 'tax_json.iva.importe', details: tax_json.iva.importe });
-                    log.debug({ title: 'obj_data_iva BEFORE', details: obj_data_iva });
+                    // log.debug({ title: 'tax_json.iva.importe', details: tax_json.iva.importe });
+                    // log.debug({ title: 'obj_data_iva BEFORE', details: obj_data_iva });
                     data_to_return.Traslados.push(obj_data_iva)
-                    log.debug({ title: 'data_to_return BEFORE', details: data_to_return });
+                    // log.debug({ title: 'data_to_return BEFORE', details: data_to_return });
                 }
                 if (tax_json.ieps.name) {
                     let obj_data_ieps = {}
@@ -1454,8 +1454,8 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                 } else {
                     delete data_to_return.Retenciones;
                 }
-                log.debug({ title: 'obj_data', details: obj_data });
-                log.debug({ title: 'data_to_return', details: data_to_return });
+                // log.debug({ title: 'obj_data', details: obj_data });
+                // log.debug({ title: 'data_to_return', details: data_to_return });
                 data_to_return.bases = parseFloat(data_to_return.bases) + parseFloat(obj_data.Base)
                 return data_to_return;
 
@@ -1490,9 +1490,9 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                         obj_data_iva.Impuesto = '002';
                         obj_data_iva.TasaOCuota = formattedNumber;
                         obj_data_iva.TipoFactor = 'Tasa';
-                        log.debug({ title: 'obj_data_iva BEFORE', details: obj_data_iva });
+                        // log.debug({ title: 'obj_data_iva BEFORE', details: obj_data_iva });
                         data_to_return.Traslados.push(obj_data_iva)
-                        log.debug({ title: 'data_to_return BEFORE', details: data_to_return });
+                        // log.debug({ title: 'data_to_return BEFORE', details: data_to_return });
                     }
                 }
                 // if (tax_json.ieps.name) {
@@ -1609,7 +1609,7 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                 data_to_return.total_transaccion = parseFloat(data_to_return.subtotal) + parseFloat(data_to_return.TotalImpuestosTrasladados) - parseFloat(data_to_return.descuentos) - parseFloat(data_to_return.TotalImpuestosRetenidos)
                 data_to_return.total_transaccion = parseFloat(data_to_return.total_transaccion).toFixed(2);
                 data_to_return.TotalImpuestosTrasladados = parseFloat(data_to_return.TotalImpuestosTrasladados).toFixed(2);
-                log.audit({ title: 'data_to_return - sacaCalculosTotales', details: data_to_return });
+                // log.audit({ title: 'data_to_return - sacaCalculosTotales', details: data_to_return });
                 return data_to_return;
             } catch (err) {
                 log.error({ title: 'Error occurred in sacaCalculosTotales', details: err });
@@ -2034,16 +2034,12 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                         }
                     })
                 });
-
-
                 // // Create a map to keep track of internalIds and their corresponding objects
                 // const idMap = new Map();
-
                 // // Populate the map with internalIds and corresponding objects
                 // arr_items_info.forEach(obj => {
                 //     idMap.set(obj.internalId, obj);
                 // });
-
                 // // Create a new array of objects based on the comparison array
                 // const newArray = item_ids.map(id => {
                 //     // Retrieve the corresponding object from the map
@@ -2055,7 +2051,6 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                 //     // If object doesn't exist, return null or handle as desired
                 //     return null; // or handle differently
                 // });
-
                 return cleanedPerItemCode;
             } catch (err) {
                 log.error({ title: 'Error occurred in getItemClaveServ', details: err });
@@ -2168,7 +2163,7 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                             data_to_return.Receptor.ResidenciaFiscal = record_trans.getValue({ fieldId: 'custbody_efx_fe_ce_rec_residenciaf' })
                             data_to_return.Receptor.NumRegIdTrib = dataCOMEX.data.ReceptorCOMEX.NumRegIdTrib
                         }
-
+                        
                     }
                 } else {
                     delete data_to_return.Complemento.Any[0];
@@ -2223,6 +2218,9 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                 data_to_return.Moneda = record_trans.getText({ fieldId: 'currency' });
                 if (data_to_return.Moneda == 'Pesos' || data_to_return.Moneda == 'MEX' || data_to_return.Moneda == 'Peso') {
                     data_to_return.Moneda = 'MXN';
+                }
+                if(data_to_return.Moneda=='USA' || data_to_return.Moneda === 'US Dollar'){
+                    data_to_return.Moneda = 'USD';
                 }
                 data_to_return.TipoCambio = record_trans.getValue({ fieldId: 'exchangerate' });
                 // Setting the current date in Mexico City timezone
@@ -2331,7 +2329,9 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                 var other_index = 0; //Sometimes the indexes are not accurate specially when the transaction has discount items
                 let totalBasesTraslados = 0;
                 let hasExento = false;
+                let cuentaNoAplicaImpuestos=0;
                 let itemsId = [];
+                let newTypeTax = 0;
                 for (var i = 0; i < number_items; i++) {
                     // declare obj to push in data to return
                     var obj_data_conceptos = {};
@@ -2361,7 +2361,7 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                             line: i,
                         });
                         itemsId.push(claveProdServ_id);
-
+                        // log.audit({title:'itemsId 👽',details:itemsId});
                         // log.debug({ title: 'claveProdServ_id ⚡1', details: claveProdServ_id });
                         // if (typeof claveProdServ_id == undefined) {
                         //     claveProdServ_id = record_trans.getSublistText({
@@ -2377,10 +2377,10 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                             fieldId: 'custcol_efx_fe_upc_code',
                             line: i,
                         });
-                        log.debug({ title: 'noIdentificacion BF UPC', details: noIdentificacion });
-                        log.debug({ title: 'noIdentificacion BF UPC TYPE', details: typeof noIdentificacion });
+                        // log.debug({ title: 'noIdentificacion BF UPC', details: noIdentificacion });
+                        // log.debug({ title: 'noIdentificacion BF UPC TYPE', details: typeof noIdentificacion });
                         if (typeof noIdentificacion == undefined || noIdentificacion == null || noIdentificacion == '') {
-                            log.debug({ title: 'is empty NoIdentificacion, will use scis', details: '' });
+                            // log.debug({ title: 'is empty NoIdentificacion, will use scis', details: '' });
                             noIdentificacion = record_trans.getSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'custcol_tko_nombrescis',
@@ -2396,7 +2396,7 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                             });
                         }
                         if (typeof noIdentificacion == undefined || noIdentificacion == null || noIdentificacion == '') {
-                            log.debug({ title: 'is empty NOIdentificacion', details: '' });
+                            // log.debug({ title: 'is empty NOIdentificacion', details: '' });
                             noIdentificacion = record_trans.getSublistValue({
                                 sublistId: 'item',
                                 fieldId: 'item_display',
@@ -2494,15 +2494,22 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                         // log.debug({ title: 'taxDetai 🐧🐧', details: taxDetai });
                         // tax code display no está en suitetax
                         // Pendiente: hacer exento cuando hay suitetax
+                        let quitaImpuestos = false;
                         if (taxDetai != null && taxDetai != '' && taxDetai != undefined) {
 
                             // log.debug({title:'taxDetai.toLowerCase()',details:taxDetai.toLowerCase()});
                             // log.emergency({title:"taxDetai.toLowerCase().includes('(exempt)')",details:taxDetai.toLowerCase().includes('(exempt)')});
                             if (!taxDetai.toLowerCase().includes('exento') && !taxDetai.toLowerCase().includes('(exempt)')) {
                                 hasExento = false;
+                                newTypeTax ++;
                             } else {
                                 hasExento = true;
                             }
+                            // 01 es no tener objeto de impuestos
+                            if(objetoImp=='01'){
+                                quitaImpuestos = true;
+                                cuentaNoAplicaImpuestos++;
+                        }
                         }
                         var impuestos = fetchImpuestos(item_tax_json);
                         // log.audit({ title: 'impuestos 🌟', details: impuestos });
@@ -2532,6 +2539,10 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                             delete impuestos.bases;
                             obj_data_conceptos.Impuestos = impuestos;
                             // hasExento = false;
+                        }
+                        if(quitaImpuestos==true){
+                            delete obj_data_conceptos.Impuestos
+                            quitaImpuestos = false;                        
                         }
                         data_to_return.Conceptos.push(obj_data_conceptos)
 
@@ -2626,7 +2637,12 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
 
                 data_to_return.Impuestos.Retenciones = recalculateConceptos.Retenciones;
                 data_to_return.Impuestos.Traslados = recalculateConceptos.Traslados;
-                if (hasExento == true) {
+                if (hasExento === true && newTypeTax === 0) {
+                    delete data_to_return.Impuestos.TotalImpuestosTrasladados;
+                }
+                // Delete Traslados if not used
+                if(number_items==cuentaNoAplicaImpuestos){
+                    delete data_to_return.Impuestos.Traslados;
                     delete data_to_return.Impuestos.TotalImpuestosTrasladados;
                 }
                 // Delete Retenciones if not used
@@ -2641,7 +2657,7 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                 let hasIEPS = record_trans.getValue({ fieldId: 'custbody_efx_fe_desglosaieps' });
                 log.emergency({ title: 'hasIEPS 💎', details: hasIEPS });
                 
-                if (hasIEPS == false || hasIEPS == 'F') {
+                if ((hasIEPS == false || hasIEPS == 'F') && runtime.accountId.includes('5907646') == true) {
                     // This is for recalculating the importe and valor unitario of the item
                     data_to_return.Conceptos.forEach((item) => {
                         if (item.Impuestos) {
@@ -3907,13 +3923,9 @@ define(['N/https', 'N/log', 'N/record', 'N/search', 'N/runtime', 'N/file', 'N/ta
                 var periodicidad = record_trans.getText({ fieldId: 'custbody_efx_fe_periodicidad' });
                 var meses = record_trans.getText({ fieldId: 'custbody_efx_fe_meses' });
                 var anio = record_trans.getValue({ fieldId: 'custbody_efx_fe_anio' });
-                if (periodicidad) {
+                if ((periodicidad !=''&& periodicidad != null && periodicidad != undefined) && (meses !=''&& meses != null && meses != undefined) && (anio !=''&& anio != null && anio != undefined)) {
                     data_to_return.InformacionGlobal.Periodicidad = periodicidad.split('-')[0];
-                }
-                if (meses) {
                     data_to_return.InformacionGlobal.Meses = meses.split('-')[0];
-                }
-                if (anio) {
                     data_to_return.InformacionGlobal.Año = anio;
                 }
                 if (data_to_return.InformacionGlobal.Periodicidad == '' && data_to_return.InformacionGlobal.Meses == '' && data_to_return.InformacionGlobal.Año == '') {
