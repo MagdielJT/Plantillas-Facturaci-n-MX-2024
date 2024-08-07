@@ -100,6 +100,7 @@ define(['../server/mx_plus_cancelacion_cfdi', '../server/_mxplus_payments', '../
         } else {
           result.details = 'No se ha definido una acción'
         }
+        log.audit({title:'result CORE',details:result});
         response.write({ output: JSON.stringify(result) })
       } catch (err) {
         log.error({ title: 'Error occurred in ', details: err })
