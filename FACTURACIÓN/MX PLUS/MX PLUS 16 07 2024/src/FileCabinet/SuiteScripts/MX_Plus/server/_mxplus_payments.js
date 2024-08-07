@@ -663,13 +663,14 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
             arrPagos.push(objFact)
           }
           pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] = (pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] * parseFloat(pago[PAGO.TipoCambioP])).toFixed(2)
+          // pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] = roundHalfUpTree(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] * parseFloat(pago[PAGO.TipoCambioP])).toFixed(2)
           if (caseExento !== true) {
             log.audit({ title: 'Detail Total', details: [typeof pagos[COMPLEMENTO.Pago20][PAGOS.Totales][totalTB], pagos[COMPLEMENTO.Pago20][PAGOS.Totales][totalTB], { typeof: typeof pago[PAGO.TipoCambioP], pago: pago[PAGO.TipoCambioP] }] });
             Object.entries(auxTotal).forEach(([key, value]) => {
               Object.keys(arraySumP).forEach((ke) => {
                 if (key === ke) {
                   pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB] = roundHalfUpSix(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB] * parseFloat(pago[PAGO.TipoCambioP]))
-                  pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB] = roundHalfUpTree(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB])
+                  pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB] = roundHalfUpTree(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB]).toFixed(2);
                   pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI] = roundHalfUpSix(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI] * parseFloat(pago[PAGO.TipoCambioP]))
                   pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI] = parseFloat(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI]).toFixed(2);
                   // pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI] = roundHalfUpTree(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI])
@@ -681,11 +682,39 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
           pagos[COMPLEMENTO.Pago20][PAGOS.Pagos] = arrPagos
           // pagos[COMPLEMENTO.Pago20][PAGOS.Pagos].push(pago)
           dataGenerate[BASE.Complemento][COMPLEMENTO.Any].push(pagos)
+          
+          // MOD: usa alternativa de cambiar el tipo de cambio 01/08/2024
+          log.debug({title:'recordPayment.getValue("custbody_efx_fe_moneda")',details:recordPayment.getValue("custbody_efx_fe_moneda")!=''});
+          if(recordPayment.getValue('custbody_efx_fe_moneda')!=''){
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].MonedaP=recordPayment.getText('custbody_efx_fe_moneda');
+            let tipoCambioOriginal=parseFloat(dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP);
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP='1';
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].Monto=dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Totales.MontoTotalPagos;
+            let sumatoriaBasesDR=0;
+            let copiaEquivalencia=0;
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].DoctoRelacionado.forEach((docRel,index)=>{
+              docRel.EquivalenciaDR=1/tipoCambioOriginal;
+              docRel.EquivalenciaDR=parseFloat(docRel.EquivalenciaDR).toFixed(10);
+              copiaEquivalencia=docRel.EquivalenciaDR;
+              docRel.ImpuestosDR.TrasladosDR.forEach((tras,index)=>{
+                sumatoriaBasesDR+=parseFloat(tras.BaseDR);
+              });
+            });
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].ImpuestosP.TrasladosP.forEach((tras,index)=>{
+              log.emergency({title:'sumatoriaBasesDR',details:sumatoriaBasesDR +'-'+copiaEquivalencia});
+              tras.BaseP=sumatoriaBasesDR/copiaEquivalencia;
+              tras.BaseP=parseFloat(tras.BaseP).toFixed(6);
+              tras.ImporteP=parseFloat(tras.ImporteP)/copiaEquivalencia;
+              tras.ImporteP=parseFloat(tras.ImporteP).toFixed(6);
+            });
+          }
         }
         // log.debug('generateJSON ~ dataGenerate:', dataGenerate)
       } catch (error) {
         log.error('Error on generateJSON', error)
       }
+      log.emergency({title:'dataGenerate',details:dataGenerate});
+      
       return dataGenerate
     }
     function esTercerDecimalMayorOIgualA5(numero) {
@@ -702,7 +731,7 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
       const roundedNumber = Math.round((number + Number.EPSILON) * 100) / 100;
       log.debug({ title: 'roundedNumber', details: roundedNumber });
       return roundedNumber;
-    }
+    }    // Multiply by 100, round, and then divide by 100
     // function roundHalfUpTree(num) {
     //   var multiplier = 100 // for three decimal places
     //   var adjustedNum = num * multiplier
