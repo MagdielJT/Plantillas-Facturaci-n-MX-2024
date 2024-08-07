@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.1
  */
-define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pagos/lib/constants', '../lib/access_pac', '../lib/functions_gbl', '../lib/moment','N/runtime'], /**
+define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pagos/lib/constants', '../lib/access_pac', '../lib/functions_gbl', '../lib/moment', 'N/runtime'], /**
   * @param {file} file
   * @param {https} https
   * @param {log} log
@@ -12,7 +12,7 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
   * @param {access_pac} access_pac
   * @param {functions} functions
   * @param {moment} moment
-  */ (file, https, log, record, query, search, constants, access_pac, functions, moment,runtime) => {
+  */ (file, https, log, record, query, search, constants, access_pac, functions, moment, runtime) => {
     const { JSON_EXAMPLE, RECORDS } = constants
     /**
      * La función `generateJSON` crea un objeto JSON basado en información de registro de entrada y
@@ -196,8 +196,8 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
           const currentDate = new Date()
           let offset = -6 // Mexico City timezone offset from UTC in hours<
           // ZAHORI TIMBRA COMO SI FUERA DE TIJUANA
-          if(runtime.accountId.includes('5610235')){
-            offset=-7;
+          if (runtime.accountId.includes('5610235')) {
+            offset = -7;
           }
           const offsetSign = offset > 0 ? '-' : '+'
           const absOffset = Math.abs(offset)
@@ -365,14 +365,21 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
           pago[PAGO.FechaPago] = basePmt[PAYMENT.FIELDS.DATE].value
           // pago[PAGO.FechaPago] = dataGenerate[BASE.Fecha]
           pago[PAGO.FormaDePagoP] = functions.getPaymentMethod(basePmt[PAYMENT.FIELDS.PMT_METHOD].value)
-          if (basePmt[PAYMENT.FIELDS.CURRENCY].text === 'Pesos' || basePmt[PAYMENT.FIELDS.CURRENCY].text === 'MEX' || basePmt[PAYMENT.FIELDS.CURRENCY].text === 'MXN') {
+          if (basePmt[PAYMENT.FIELDS.CURRENCY].text === 'Pesos' || basePmt[PAYMENT.FIELDS.CURRENCY].text === 'Peso' || basePmt[PAYMENT.FIELDS.CURRENCY].text === 'MEX' || basePmt[PAYMENT.FIELDS.CURRENCY].text === 'MXN') {
             pago[PAGO.MonedaP] = 'MXN'
           } else {
             pago[PAGO.MonedaP] = basePmt[PAYMENT.FIELDS.CURRENCY].text
           }
           pago[PAGO.TipoCambioP] = Number(basePmt[PAYMENT.FIELDS.EXCHANGE_RATE].value).toFixed(pago[PAGO.MonedaP] !== 'MXN' ? 4 : 0)
           // pago[PAGO.TipoCambioP] = '1' // Number(basePmt[PAYMENT.FIELDS.EXCHANGE_RATE].value).toFixed(pago[PAGO.MonedaP] !== 'MXN' ? 4 : 0)
-          pago[PAGO.Monto] = Number(auxImpT).toFixed(2)
+          pago[PAGO.Monto] = Number(auxImpT).toFixed(2);
+          let recordPayment=record.load({
+            type: record.Type.CUSTOMER_PAYMENT,
+            id: recordId
+          });
+          if(recordPayment.getValue('custbody_mx_cfdi_payment_id')!=null && recordPayment.getValue('custbody_mx_cfdi_payment_id')!='' && recordPayment.getValue('custbody_mx_cfdi_payment_id')!=undefined){
+            pago.NumOperacion=recordPayment.getValue('custbody_mx_cfdi_payment_id');
+          }
           // pago[PAGO.Monto] = receFactoraje[FACTORAJE.CHECK_FAC].value != true ? Number(basePmt[PAYMENT.FIELDS.TOTAL].value).toFixed(2) : Number(auxImpT).toFixed(2)
           //TODO: BORRAR COMENTARIOS
           /*paymentDetails.forEach(invoice => {
@@ -382,7 +389,7 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
                 Object.keys(tax_json.bases_iva).forEach(key => {*/
           // pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS[totalTB]] += pago[PAGO.MonedaP] !== 'MXN' ? Number(tax_json.bases_iva[key]) * pago[PAGO.TipoCambioP] : Number(tax_json.bases_iva[key])
           // pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS[totalTI]] += Number(tax_json.rates_iva_data[key])
-          pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] =  parseFloat(pago[PAGO.Monto])
+          pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] = parseFloat(pago[PAGO.Monto])
           // pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] = roundHalfUpSix(parseFloat(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos])).toFixed(2)*/
           /*})
               } else {
@@ -488,7 +495,7 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
                       Object.entries(auxTotal).forEach(([taxt, valu]) => {
                         if (taxt === tasa) {
                           pagos[COMPLEMENTO.Pago20][PAGOS.Totales][valu.totalTB] = val[DOC_REL.BaseDR]
-                          log.debug({title: 'totalTB', details: [pagos[COMPLEMENTO.Pago20][PAGOS.Totales][valu.totalTB], pago[PAGO.TipoCambioP], val[DOC_REL.BaseDR] * Number(pago[PAGO.TipoCambioP])]})
+                          log.debug({ title: 'totalTB', details: [pagos[COMPLEMENTO.Pago20][PAGOS.Totales][valu.totalTB], pago[PAGO.TipoCambioP], val[DOC_REL.BaseDR] * Number(pago[PAGO.TipoCambioP])] })
                           pagos[COMPLEMENTO.Pago20][PAGOS.Totales][valu.totalTI] = val[DOC_REL.ImporteDR]
                         }
                       })
@@ -637,7 +644,7 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
                   }
                 }
               })
-              log.audit({title:'payTotal 👻',details:payTotal});
+              log.audit({ title: 'payTotal 👻', details: payTotal });
               Object.values(taxAux).forEach(impuesto => objFact[PAGO.ImpuestosP][PAGO.TrasladosP].push(impuesto))
               objFact[PAGO.ImpuestosP][PAGO.TrasladosP].forEach(p => {
                 p[IMPUESTOS.BaseP] = Number(p[IMPUESTOS.BaseP]).toFixed(6)
@@ -652,19 +659,21 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
                 })
               })
             }
-            pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] =  pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] + parseFloat(objFact[PAGO.Monto])
+            pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] = pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] + parseFloat(objFact[PAGO.Monto])
             arrPagos.push(objFact)
           }
-          pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] = (pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] * parseFloat(pago[PAGO.TipoCambioP])).toFixed(2)
+          pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] = pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] * parseFloat(pago[PAGO.TipoCambioP]).toFixed(2)
+          // pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] = roundHalfUpTree(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] * parseFloat(pago[PAGO.TipoCambioP])).toFixed(2)
           if (caseExento !== true) {
             log.audit({ title: 'Detail Total', details: [typeof pagos[COMPLEMENTO.Pago20][PAGOS.Totales][totalTB], pagos[COMPLEMENTO.Pago20][PAGOS.Totales][totalTB], { typeof: typeof pago[PAGO.TipoCambioP], pago: pago[PAGO.TipoCambioP] }] });
             Object.entries(auxTotal).forEach(([key, value]) => {
               Object.keys(arraySumP).forEach((ke) => {
                 if (key === ke) {
                   pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB] = roundHalfUpSix(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB] * parseFloat(pago[PAGO.TipoCambioP]))
-                  pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB] = (esTercerDecimalMayorOIgualA5(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB]) === true ? roundHalfUpTree(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB]) : pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB]).toFixed(2)
+                  pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB] = roundHalfUpTree(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTB]).toFixed(2);
                   pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI] = roundHalfUpSix(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI] * parseFloat(pago[PAGO.TipoCambioP]))
-                  pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI] = (esTercerDecimalMayorOIgualA5(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI]) === true ? roundHalfUpTree(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI]) : pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI]).toFixed(2)
+                  pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI] = parseFloat(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI]).toFixed(2);
+                  // pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI] = roundHalfUpTree(pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI])
                 }
               })
             })
@@ -672,32 +681,58 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
           pagos[COMPLEMENTO.Pago20][PAGOS.Pagos] = arrPagos
           // pagos[COMPLEMENTO.Pago20][PAGOS.Pagos].push(pago)
           dataGenerate[BASE.Complemento][COMPLEMENTO.Any].push(pagos)
+          
+          // MOD: usa alternativa de cambiar el tipo de cambio 01/08/2024
+          log.debug({title:'recordPayment.getValue("custbody_efx_fe_moneda")',details:recordPayment.getValue("custbody_efx_fe_moneda")!=''});
+          if(recordPayment.getValue('custbody_efx_fe_moneda')!=''){
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].MonedaP=recordPayment.getText('custbody_efx_fe_moneda');
+            let tipoCambioOriginal=parseFloat(dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP);
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP='1';
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].Monto=dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Totales.MontoTotalPagos;
+            let sumatoriaBasesDR=0;
+            let copiaEquivalencia=0;
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].DoctoRelacionado.forEach((docRel,index)=>{
+              docRel.EquivalenciaDR=1/tipoCambioOriginal;
+              docRel.EquivalenciaDR=parseFloat(docRel.EquivalenciaDR).toFixed(10);
+              copiaEquivalencia=docRel.EquivalenciaDR;
+              docRel.ImpuestosDR.TrasladosDR.forEach((tras,index)=>{
+                sumatoriaBasesDR+=parseFloat(tras.BaseDR);
+              });
+            });
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].ImpuestosP.TrasladosP.forEach((tras,index)=>{
+              log.emergency({title:'sumatoriaBasesDR',details:sumatoriaBasesDR +'-'+copiaEquivalencia});
+              tras.BaseP=sumatoriaBasesDR/copiaEquivalencia;
+              tras.BaseP=parseFloat(tras.BaseP).toFixed(6);
+              tras.ImporteP=parseFloat(tras.ImporteP)/copiaEquivalencia;
+              tras.ImporteP=parseFloat(tras.ImporteP).toFixed(6);
+            });
+          }
         }
         // log.debug('generateJSON ~ dataGenerate:', dataGenerate)
       } catch (error) {
         log.error('Error on generateJSON', error)
       }
+      log.emergency({title:'dataGenerate',details:dataGenerate});
+      
       return dataGenerate
     }
     function esTercerDecimalMayorOIgualA5(numero) {
       const tercerDecimal = Math.floor(numero * 1000) % 10;
       return tercerDecimal >= 5;
     }
-    /*function esTercerDecimalMayorIgual5(numero) {
-      let numeroStr = numero.toFixed(3);
-      let tercerDecimal = parseInt(numeroStr.split('.')[1][2]);
-      return tercerDecimal >= 5;
-    }*/
-    // Ejemplo de uso
-    // let numero = 3.165987;
-    // let resultado = esTercerDecimalMayorIgual5(numero);
-    function roundHalfUpTree(num) {
-      /*var multiplier = 100 // for three decimal places
-      var adjustedNum = num * multiplier
-      var rounded = Math.round(adjustedNum)
-      return rounded / multiplier*/
-      return Math.round(num * 100) / 100;
-    }
+    function roundHalfUpTree(number) {
+      log.debug({ title: 'number 💕', details: number })
+      const roundedNumber = Math.round((number + Number.EPSILON) * 100) / 100;
+      log.debug({ title: 'roundedNumber', details: roundedNumber });
+      return roundedNumber;
+
+    }    // Multiply by 100, round, and then divide by 100
+    // function roundHalfUpTree(num) {
+    //   var multiplier = 100 // for three decimal places
+    //   var adjustedNum = num * multiplier
+    //   var rounded = Math.round(adjustedNum)
+    //   return rounded / multiplier
+    // }
     function roundHalfUpSix(num) {
       var multiplier = 100000 // for three decimal places
       var adjustedNum = num * multiplier
@@ -788,7 +823,13 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
           delete PAYMENT.FIELDS.SUBSIDIARY
         }
         const filters = [[PAYMENT.FIELDS.ID, search.Operator.IS, id], 'AND', ['mainline', search.Operator.IS, 'T']]
-        const columns = Object.values(PAYMENT.FIELDS).map(f => ({ name: f }))
+        let columns = Object.values(PAYMENT.FIELDS).map(f => ({ name: f }));
+        if (isOW == false) {
+          columns = columns.filter(column => column.name !== 'subsidiary')
+        }
+        if (runtime.isFeatureInEffect({ feature: 'LOCATIONS' }) == false) {
+          columns = columns.filter(column => column.name !== 'location')
+        }
         const objSearch = search.create({
           type: search.Type.CUSTOMER_PAYMENT,
           filters,
