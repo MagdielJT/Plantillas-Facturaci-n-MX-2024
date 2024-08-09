@@ -122,12 +122,12 @@
                             <span class="nameandaddress" style="font-size: 9px;">
                                 <#if record.custbody_efx_fe_info_location_pdf == true>
                                     ${record.custbody_efx_fe_dirloc}
-                                    <#assign dataEmisor = record.custbody_ex_fe_cp_json_dir?eval>
-                                    <br/><b>Lugar de Expedición:</b> ${dataEmisor.emisor.CodigoPostal}
+                                    <#--  <#assign dataEmisor = record.custbody_ex_fe_cp_json_dir?eval>  -->
+                                    <#--  <br/><b>Lugar de Expedición:</b> ${dataEmisor.emisor.CodigoPostal}  -->
                                 <#else>
-                                    <#assign dataEmisor = record.custbody_ex_fe_cp_json_dir?eval>
+                                    <#--  <#assign dataEmisor = record.custbody_ex_fe_cp_json_dir?eval>  -->
                                     ${record.custbody_efx_fe_dirsubs}
-                                    <br/>Lugar de Expedición: ${dataEmisor.emisor.CodigoPostal}
+                                    <#--  <br/>Lugar de Expedición: ${dataEmisor.emisor.CodigoPostal}  -->
                                 </#if>
                             </span>
                             <span class="nameandaddress" style="font-size: 9px; width: 40%;" ></span>
@@ -379,20 +379,20 @@
                     </td>
                     <td></td>
                     <td class="body" colspan="14" style="background-color: #e3e3e3; font-size:9px">
-                        <b>Lugar de entrega</b>
+                        <b>Domicilio Fiscal</b>
                     </td>
                 </tr>
                 <tr>
                     <td colspan="14" rowspan="2" style="border: 1px; border-color: #e3e3e3; font-size:9px;">
-                        <#--  ${dataXML.Receptor.atributos.Nombre}<br/>  -->
-                        ${record.billaddress?upper_case}
+                        ${dataXML.Receptor.atributos.Nombre}<br/>
+                        <#--  ${record.billaddress?upper_case}  -->
                         <br/><b>RFC:</b> ${dataXML.Receptor.atributos.Rfc}
                         <br/><b>Régimen Fiscal:</b> ${record.entity.custentity_mx_sat_industry_type?upper_case}
                         <#--  <br/><b>Régimen Fiscal:</b> ${infoEmpresa.custrecord_mx_sat_industry_type?upper_case}  -->
                     </td>
                     <td></td>
                     <td align="left" colspan="14" style="border: 1px; border-color: #e3e3e3; font-size:9px;">
-                        ${record.shipaddress?keep_after(" />")?upper_case}
+                        ${record.billaddress?keep_after(" />")?upper_case}
                     </td>
                 </tr>
             </table>
@@ -412,8 +412,6 @@
                         <br/>${record.billaddress?upper_case}<br/>RFC: ${record.custbody_efx_fe_kiosko_rfc?upper_case}
                         <br/></td>
                     <td></td>
-
-
                     <td align="left" colspan="14"
                         style="border: 1px; border-color: #e3e3e3; font-size:9px;">${record.billaddress?keep_after(" />")?upper_case} </td>
                 </tr>
@@ -426,19 +424,20 @@
                     </td>
                     <td></td>
                     <td class="body" colspan="14" style="background-color: #e3e3e3; font-size:9px">
-                        <b>Lugar de entrega</b>
+                        <b>Domicilio Fiscal</b>
                     </td>
                 </tr>
                 <tr>
                     <td colspan="14" rowspan="2" style="border: 1px; border-color: #e3e3e3; font-size:9px;">
-                        ${record.billaddress?upper_case}
+                        ${record.entity.companyname?upper_case}
+                        <#--  ${record.billaddress?upper_case}  -->
                         <br/><b>RFC:<b> ${record.custbody_mx_customer_rfc?upper_case}
                         <br/><b>Régimen Fiscal:</b> ${record.entity.custentity_mx_sat_industry_type?upper_case}
                         <#--  <br/><b>Régimen Fiscal:</b> ${infoEmpresa.custrecord_mx_sat_industry_type?upper_case}  -->
                     </td>
                     <td></td>
                     <td align="left" colspan="14" style="border: 1px; border-color: #e3e3e3; font-size:9px;">
-                        ${record.shipaddress?keep_after(" />")?upper_case}
+                        ${record.billaddress?keep_after(" />")?upper_case}
                     </td>
                 </tr>
             </table>
@@ -652,7 +651,7 @@
                         <td align="center" colspan="4" line-height="150%"
                             style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.Cantidad}</td>
                         <td align="center" colspan="4"
-                            style="border-left: 1px; border-color: #e3e3e3; font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.ValorUnitario}</td>
+                            style="border-left: 1px; border-color: #e3e3e3; font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.ValorUnitario?number?string[",##0.00"]}</td>
                         <#assign impuestos_line_calc = 0>
                         <#if Conceptos.Impuestos.Traslados.Traslado?has_content>
                             <#if Conceptos.Impuestos.Traslados.Traslado?is_sequence>
@@ -675,9 +674,9 @@
                         <td align="center" colspan="4"
                             style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${impuestos_line_calc?string[",##0.00"]}</td>
                         <td align="center" colspan="4"
-                            style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.Descuento}</td>
+                            style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.Descuento?number?string[",##0.00"]}</td>
                         <td align="center" colspan="4"
-                            style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.Importe}</td>
+                            style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${Conceptos.atributos.Importe?number?string[",##0.00"]}</td>
                     </tr>
 
                 </#list>
@@ -848,7 +847,7 @@
                     <td align="center" colspan="4" line-height="150%"
                         style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.Cantidad}</td>
                     <td align="center" colspan="4"
-                        style="border-left: 1px; border-color: #e3e3e3; font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.ValorUnitario}</td>
+                        style="border-left: 1px; border-color: #e3e3e3; font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.ValorUnitario?number?string[",##0.00"]}</td>
                     <#assign impuestos_line_calc = 0>
                     <#if Conceptos.Impuestos.Traslados.Traslado?has_content>
                         <#if Conceptos.Impuestos.Traslados.Traslado?is_sequence>
@@ -871,9 +870,9 @@
                     <td align="center" colspan="4"
                         style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${impuestos_line_calc?string[",##0.00"]}</td>
                     <td align="center" colspan="4"
-                        style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.Descuento}</td>
+                        style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.Descuento?number?string[",##0.00"]}</td>
                     <td align="center" colspan="4"
-                        style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.Importe}</td>
+                        style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${dataXML.Conceptos.Concepto.atributos.Importe?number?string[",##0.00"]}</td>
                 </tr>
             </#if>
         </table>
@@ -1038,14 +1037,14 @@
                             <td align="center" colspan="4" line-height="150%"
                                 style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.quantity}</td>
                             <td align="center" colspan="4"
-                                style="border-left: 1px; border-color: #e3e3e3; font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.rate?string[",##0.00"]}</td>
+                                style="border-left: 1px; border-color: #e3e3e3; font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.rate?number?string[",##0.00"]}</td>
                             <td align="center" colspan="4"
-                                style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.tax1amt}</td>
+                                style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.tax1amt?number?string[",##0.00"]}</td>
                             <td align="center" colspan="4"
                                 style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${importe_discount[item_index+1]?number?string[",##0.00"]}</td>
                             <#assign "descuento_total" = descuento_total + importe_discount[item_index+1]>
                             <td align="center" colspan="4"
-                                style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.grossamt}</td>
+                                style="border-left: 1px; border-color: #e3e3e3;font-size: 5pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">${item.grossamt?number?string[",##0.00"]}</td>
                         </#if>
                     </tr>
 
@@ -1124,7 +1123,7 @@
                         <td colspan="1" style="font-size: 7pt; border-color: #e3e3e3;border-left: 1px;"><b>Subtotal</b>
                         </td>
                         <#if dataXML?has_content>
-                            <td align="right" colspan="1" style="font-size: 7pt;">${dataXML.atributos.SubTotal}</td>
+                            <td align="right" colspan="1" style="font-size: 7pt;">${dataXML.atributos.SubTotal?number?string[",##0.00"]}</td>
                         <#else>
                             <#if record.custbody_efx_fe_gbl_subtotal?has_content>
                                 <td align="right" colspan="1"
@@ -1159,7 +1158,7 @@
                         <td colspan="1" style="font-size: 7pt;  border-color: #e3e3e3;border-left: 1px;"><b>Traslados</b></td>
                         <#if dataXML?has_content>
                             <td align="right" colspan="1"
-                                style="font-size: 7pt;">${dataXML.Impuestos.atributos.TotalImpuestosTrasladados}</td>
+                                style="font-size: 7pt;">${dataXML.Impuestos.atributos.TotalImpuestosTrasladados?number?string[",##0.00"]}</td>
                         <#else>
                             <td align="right" colspan="1" style="font-size: 7pt;">${totalivaGBL?string[",##0.00"]}</td>
                         </#if>
@@ -1215,7 +1214,7 @@
                         <td colspan="1" style="font-size: 7pt;  border-color: #e3e3e3;border-left: 1px;"><b>Total</b>
                         </td>
                         <#if dataXML?has_content>
-                            <td align="right" colspan="1" style="font-size: 7pt;">${dataXML.atributos.Total}</td>
+                            <td align="right" colspan="1" style="font-size: 7pt;">${dataXML.atributos.Total?number?string[",##0.00"]}</td>
                         <#else>
                             <td align="right" colspan="1"
                                 style="font-size: 7pt;"><#if cabecera_total?has_content>${cabecera_total?number?string[",##0.00"]}</#if></td>
@@ -1304,9 +1303,9 @@
 
         </tr>
         <tr>
-            <td colspan="1" style="font-size: 7pt;"><b>Moneda:</b></td>
-            <td colspan="2" style="font-size: 7pt;">${record.currency?upper_case}</td>
-            <td colspan="1" style="font-size: 7pt;"><b>Método de pago:</b></td>
+            <td colspan="1" style="font-size: 7pt; padding: 2px;"><b>Moneda:</b></td>
+            <td colspan="2" style="font-size: 7pt; padding: 2px;">${record.currency?upper_case}</td>
+            <td colspan="1" style="font-size: 7pt; padding: 2px;"><b>Método de pago:</b></td>
             <#if dataXML?has_content>
                 <#assign metodo_pago = dataXML.atributos.MetodoPago>
             <#else>
@@ -1390,14 +1389,24 @@
                 <td colspan="2" style="font-size: 7pt; padding: 2px;">I08 - OTRA MAQUINARIA Y EQUIPO</td>
             <#elseif uso_cfdi == "P01">
                 <td colspan="2" style="font-size: 7pt; padding: 2px;">P01 - POR DEFINIR</td>
+            <#elseif uso_cfdi == "S01">
+                <td colspan="2" style="font-size: 7pt; padding: 2px;">S01 - SIN EFECTOS FISCALES</td>
             <#else>
                 <td colspan="2" style="font-size: 7pt; padding: 2px;"></td>
             </#if>
+            <td colspan="1" style="font-size: 7pt; padding: 2px;"><b>Lugar de Expedición:</b></td>
+            <td colspan="2" style="font-size: 7pt; padding: 2px;">
+                <#if record.custbody_ex_fe_cp_json_dir?has_content>
+                    <#assign cpEmisor = record.custbody_ex_fe_cp_json_dir?eval>
+                    ${cpEmisor.emisor.CodigoPostal}
+                <#elseif dataXML?has_content>
+                        ${dataXML.atributos.LugarExpedicion}
+                </#if>
+            </td>
         </tr>
         <tr>
-            <td colspan="1" style="font-size: 7pt;"><b>Régimen fiscal:</b></td>
-            <td colspan="2" style="font-size: 7pt;">${infoEmpresa.custrecord_mx_sat_industry_type?upper_case}</td>
-
+            <td colspan="1" style="font-size: 7pt; padding: 2px;"><b>Régimen fiscal:</b></td>
+            <td colspan="2" style="font-size: 7pt; padding: 2px;">${infoEmpresa.custrecord_mx_sat_industry_type?upper_case}</td>
         </tr>
 
     </table>
