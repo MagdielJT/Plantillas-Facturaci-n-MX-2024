@@ -578,7 +578,7 @@
     </tr>
     <tr>
         <td colspan="1" style="font-size: 7pt;"><b>Monto pagado:</b></td>
-            <#if record.custbody_efx_fe_importe?has_content>
+            <#if (record.custbody_efx_fe_importe?number > 0)>
                 <td colspan="2" style="font-size: 7pt;">$${record.custbody_efx_fe_importe?number?string[",##0.00"]}</td>
             <#else>
                 <td colspan="2" style="font-size: 7pt;">$${record.payment}</td>
