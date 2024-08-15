@@ -1680,8 +1680,32 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                             });
                             // VNA detalle de inventario
                             if (runtime.accountId.includes('6212323')) {
+                        var result = invoiceFunctions.obtenercustomobject(recordObj, recordObj.type, recordObj.type, '', recordObj.id, true);
+                            log.audit({ title: 'result', details: result });
+                            var customJson = {
+                                customDataSources: [
+                                    {
+                                        format: render.DataSource.OBJECT,
+                                        alias: 'custom',
+                                        data: result,
+                                    },
+                                ],
+                            };
+                            if (JSON.stringify(customJson) !== "{}") {
+                                var alias = customJson.customDataSources.length > 0 ? customJson.customDataSources[0].alias : "";
+                                var format = customJson.customDataSources.length > 0 ? customJson.customDataSources[0].format : "";
+                                var data = customJson.customDataSources.length > 0 ? customJson.customDataSources[0].data : "";
+                                log.audit({ title: 'alias', details: JSON.stringify(alias) });
+                                log.audit({ title: 'format', details: JSON.stringify(format) });
+                                log.audit({ title: 'data', details: JSON.stringify(data) });
+                                plantilla.addCustomDataSource({
+                                    alias: alias,
+                                    format: format,
+                                    data: data
+                                });
+                            }
                                 let obtenerObjs = obtenObjs(recordObj.id, recordObj.type);
-                                log.audit({ title: 'obtenerObjs.obj_detalleinv', details: obtenerObjs.obj_detalleinv });
+                                log.audit({ title: 'obtenerObjs.obj_detalleinv VNA', details: obtenerObjs.obj_detalleinv });
                                 var obj_detinvst = JSON.stringify(obtenerObjs.obj_detalleinv);
                                 var obj_detinv = JSON.parse(obj_detinvst);
                                 if (obj_detinv) {
@@ -1692,6 +1716,26 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                                     });
                                 }
                             }
+                    // Imeis
+                    let data_imeis = { imei: '' };
+
+                    var fileId = recordObj.getValue({
+                        fieldId: 'custbody_tkio_imeis_vivo'
+                    });
+                    if (fileId) {
+                        var fileObj = file.load({
+                            id: fileId
+                        });
+                        var fileContents = fileObj.getContents();
+                        data_imeis = {
+                            imei: fileContents
+                        }
+                        plantilla.addCustomDataSource({
+                            alias: 'customvalue',
+                            format: render.DataSource.OBJECT,
+                            data: data_imeis
+                        });
+                    }
                             var SUBSIDIARIES = runtime.isFeatureInEffect({ feature: "SUBSIDIARIES" });
                             if (SUBSIDIARIES) {
     
@@ -1882,6 +1926,28 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                             if (objReturn.obj.succes) {
                                 xmlAddenda = getXmlCityFresco(objReturn.obj.data);
                                 return xmlAddenda.data
+
+                            }
+                            break;
+                        }
+                        case 'Soriana': {
+                            var objReturn = {
+                                error: [],
+                                xml: '',
+                                schema: '',
+                                obj: {
+                                    succes: false,
+                                },
+                                input: {
+                                    custparam_tranid: recordObj.id,
+                                    custparam_trantype: recordObj.type,
+                                    custparam_mode: adendaName,
+                                }
+                            };
+                            objReturn.obj = getDataSoriana(recordObj.id, recordObj.type);
+                            if (objReturn.obj.succes) {
+                                xmlAddenda = getXmlSoriana(objReturn.obj.data);
+                                return xmlAddenda.data
     
                             }
                             break;
@@ -2026,7 +2092,7 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     columns: arrayColumn
                 });
     
-                log.audit({title: 'LookupField', details: JSON.stringify(LookupField)});
+                log.audit({ title: 'LookupField', details: JSON.stringify(LookupField) });
     
                 respuesta.data.custentity_efx_fe_add_bp_idprov = LookupField['customer.custentity_efx_fe_add_bp_idprov'] || '';
                 respuesta.data.otherrefnum = LookupField['otherrefnum'] || '';
@@ -2079,13 +2145,326 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                     respuesta.succes = true;
                 }
             } catch (error) {
-                log.error({title: 'error getDataChedrahui', details: JSON.stringify(error)});
+                log.error({ title: 'error getDataChedrahui', details: JSON.stringify(error) });
                 respuesta.succes = false;
             }
-            log.audit({title: 'respuesta getDataChedrahui', details: JSON.stringify(respuesta)});
+            log.audit({ title: 'respuesta getDataChedrahui', details: JSON.stringify(respuesta) });
             return respuesta;
         }
-    
+        function getDataSoriana(param_id, param_type) {
+            var respuesta = {
+                succes: false,
+                data: {
+                    total: 0,
+                    subtotal: 0,
+                    iva: 0,
+                    ieps: 0,
+                    descuentototal: 0,
+                    catitdad_articulos: '',
+
+                    fecha_remision: '',
+                    fecha_cita: '',
+                    folio_num_cita: '',
+                    folio_pedido: '',
+                    orden_compra: '',
+                    id_remision: '',
+                    num_cajas: '',
+                    id_proveedor: '',
+                    tran_id: '',
+                    determinante: '',
+                    entrega_mercancia: '',
+                    determinante_envio: '',
+                    entrega_mercancia_envio: '',
+                    item: []
+                }
+            };
+            try {
+
+                var rec_transaction = record.load({
+                    type: param_type,
+                    id: param_id,
+                    isDynamic: true,
+                });
+                subtotal_transaction = rec_transaction.getValue('subtotal');
+
+                var LookupField = search.lookupFields({
+                    type: search.Type.TRANSACTION,
+                    id: param_id,
+                    columns: [
+                        //'custbody_efx_soriana_fecharemision',
+                        'custbody_efx_soriana_fechacita',
+                        'custbody_efx_soriana_numerocita',
+                        'custbody_efx_soriana_foliopedido',
+                        'custbody_efx_soriana_remision',
+                        'custbody_efx_soriana_numerocajas',
+                        'custbody_efx_fe_tax_json',
+                        'otherrefnum',
+                        //'custbody_efx_fe_add_oc_soriana',
+                        'customer.custentity_efx_soriana_idproveedor',
+                        'tranid',
+                        'trandate',
+                        'billingaddress.custrecord_efx_soriana_determinante',
+                        'billingaddress.custrecord_efx_soriana_entregamercancia',
+                        'shippingaddress.custrecord_efx_soriana_determinante',
+                        'shippingaddress.custrecord_efx_soriana_entregamercancia',
+                        'total',
+                        'custbody_efx_fe_add_pext',
+                        'otherrefnum', //sustituis por el folio de pedido, sourcear idremision con id de factura
+
+                    ]
+                });
+
+                var extemporaneo = LookupField['custbody_efx_fe_add_pext'] || '';
+                log.audit({ title: 'LookupField', details: JSON.stringify(LookupField) });
+
+                var horaMexico = horaActual();
+                // if (LookupField['custbody_efx_soriana_fecharemision']) {
+                //     respuesta.data.fecha_remision = fechaSplit(LookupField['custbody_efx_soriana_fecharemision'], '/', '-', 0, 1, 2, 'T' + horaMexico);
+                // }
+                if (LookupField['trandate']) {
+                    respuesta.data.fecha_remision = fechaSplit(LookupField['trandate'], '/', '-', 0, 1, 2, 'T' + horaMexico);
+                }
+                if (LookupField['custbody_efx_soriana_fechacita']) {
+                    respuesta.data.fecha_cita = fechaSplit(LookupField['custbody_efx_soriana_fechacita'], '/', '-', 0, 1, 2, 'T' + horaMexico);
+                }
+
+
+                //var n_serie_fact = runtime.getCurrentScript().getParameter({name: 'custscript_efx_fe_serie_invoice'}) || '';
+                var n_serie_fact_id = LookupField['tranid'] || '';
+
+                //log.audit({title: 'n_serie_fact', details: JSON.stringify(n_serie_fact)});
+                log.audit({ title: 'n_serie_fact_id', details: JSON.stringify(n_serie_fact_id) });
+                log.audit({ title: 'custbody_efx_fe_tax_json', details: JSON.parse(LookupField['custbody_efx_fe_tax_json']) });
+                var json_tax = JSON.parse(LookupField['custbody_efx_fe_tax_json']);
+
+
+                respuesta.data.iva = json_tax.iva_total;
+                respuesta.data.ieps = json_tax.ieps_total;
+                respuesta.data.folio_pedido = LookupField['otherrefnum'] || '';
+                //respuesta.data.orden_compra = LookupField['custbody_efx_fe_add_oc_soriana'] || '';
+                respuesta.data.orden_compra = LookupField['otherrefnum'] || '';
+                if (extemporaneo) {
+                    respuesta.data.numero_cita = '';
+                    respuesta.data.id_remision = LookupField['tranid'] || '';
+                } else {
+                    respuesta.data.numero_cita = LookupField['custbody_efx_soriana_numerocita'] || '';
+                    respuesta.data.contra_recibo = LookupField['custbody_efx_soriana_foliopedido'] || '';
+                    respuesta.data.id_remision = LookupField['custbody_efx_soriana_remision'] || '';
+                    if (!LookupField['custbody_efx_soriana_remision']) {
+                        respuesta.data.id_remision = LookupField['tranid'] || '';
+                    }
+                }
+
+                respuesta.data.num_cajas = LookupField['custbody_efx_soriana_numerocajas'] || '';
+                respuesta.data.id_proveedor = LookupField['customer.custentity_efx_soriana_idproveedor'] || '';
+                respuesta.data.tran_id =  /*n_serie_fact+*/n_serie_fact_id;
+                respuesta.data.determinante = LookupField['billingaddress.custrecord_efx_soriana_determinante'] || '';
+                respuesta.data.entrega_mercancia = LookupField['billingaddress.custrecord_efx_soriana_entregamercancia'] || '';
+                respuesta.data.determinante_envio = LookupField['shippingaddress.custrecord_efx_soriana_determinante'] || '';
+                respuesta.data.entrega_mercancia_envio = LookupField['shippingaddress.custrecord_efx_soriana_entregamercancia'] || '';
+
+                respuesta.data.total = LookupField['total'] || 0;
+
+
+                var objParametro = {
+                    id: param_id,
+                    type: param_type,
+                    sublist: 'item',
+                    bodyFieldValue: [
+                        'discounttotal'
+                    ],
+                    bodyFieldText: [],
+                    lineField: [
+                        'itemtype',
+                        'item',
+                        'itemTEXT',
+                        'quantity',
+                        'rate',
+                        'custcol_efx_fe_upc_code',
+                        'amount',
+                    ],
+                };
+
+                var transactionField = getTransactionField(objParametro);
+                if (transactionField.succes) {
+
+
+                    var array_items = [];
+                    var descuento_total_lineas = 0;
+                    for (var ir in transactionField.data.lineField) {
+                        //buscar descuentos
+                        var descuento_linea = 0;
+                        var linea_disc = parseInt(ir) + 1;
+                        var tamano_linefield = Object.keys(transactionField.data.lineField).length;
+                        log.audit({ title: 'linea_disc', details: linea_disc });
+                        log.audit({ title: 'tamano_linefield', details: tamano_linefield });
+                        if (linea_disc < tamano_linefield) {
+                            if (transactionField.data.lineField[linea_disc].itemtype == 'Discount') {
+                                descuento_linea = transactionField.data.lineField[linea_disc].amount;
+                                if (descuento_linea < 0) {
+                                    descuento_linea = descuento_linea * (-1);
+                                }
+                            }
+                        }
+                        //fin de buscar descuentos
+                        if (
+                            transactionField.data.lineField[ir].itemtype == 'InvtPart' ||
+                            transactionField.data.lineField[ir].itemtype == 'Service' ||
+                            transactionField.data.lineField[ir].itemtype == 'Kit' ||
+                            transactionField.data.lineField[ir].itemtype == 'NonInvtPart' ||
+                            transactionField.data.lineField[ir].itemtype == 'Assembly' ||
+                            transactionField.data.lineField[ir].itemtype == 'Markup'
+                        ) {
+                            var json_col = rec_transaction.getSublistValue({
+                                sublistId: 'item',
+                                fieldId: 'custcol_efx_fe_tax_json',
+                                line: ir
+                            });
+                            var json_tax_col = JSON.parse(json_col);
+
+
+                            descuento_total_lineas = descuento_total_lineas + descuento_linea;
+                            var new_rate = 0;
+                            log.audit({ title: 'descuento_linea', details: JSON.stringify(descuento_linea) });
+                            if (descuento_linea > 0) {
+                                log.audit({ title: 'parseFloat(transactionField.data.lineField[ir].rate', details: JSON.stringify(parseFloat(transactionField.data.lineField[ir].rate.toFixed(2))) });
+                                log.audit({ title: 'parseFloat(transactionField.data.lineField[ir].quantity', details: JSON.stringify(parseFloat(transactionField.data.lineField[ir].quantity)) });
+                                log.audit({ title: 'descuento_linea', details: JSON.stringify(descuento_linea) });
+                                var opnew_rate = (parseFloat(transactionField.data.lineField[ir].rate) * parseFloat(transactionField.data.lineField[ir].quantity)) - parseFloat(descuento_linea);
+                                log.audit({ title: 'opnew_rate', details: JSON.stringify(opnew_rate) });
+                                new_rate = opnew_rate / parseFloat(transactionField.data.lineField[ir].quantity);
+                            } else {
+                                new_rate = transactionField.data.lineField[ir].rate || '';
+                            }
+                            respuesta.data.item.push({
+                                quantity: transactionField.data.lineField[ir].quantity || '',
+                                sku: transactionField.data.lineField[ir].custcol_efx_fe_upc_code || '',
+                                rate: new_rate || '',
+                                discount: descuento_linea,
+                                iva_rate: (json_tax_col.iva.rate).toFixed(4),
+                                ieps_rate: (json_tax_col.ieps.rate).toFixed(4)
+                            });
+                        }
+                    }
+                    log.error({ title: 'transactionField.data.bodyFieldValue.discounttotal', details: JSON.stringify(transactionField.data.bodyFieldValue.discounttotal) });
+                    log.error({ title: 'descuento_total_lineas', details: JSON.stringify(descuento_total_lineas) });
+                    if (transactionField.data.bodyFieldValue.discounttotal) {
+                        respuesta.data.descuentototal = transactionField.data.bodyFieldValue.discounttotal;
+                    } else {
+                        respuesta.data.descuentototal = descuento_total_lineas.toFixed(2);
+                    }
+
+
+                }
+
+                respuesta.data.subtotal = subtotal_transaction.toFixed(2);
+                respuesta.succes = true;
+            } catch (error) {
+                log.error({ title: 'error getDataSorianaEfx', details: JSON.stringify(error) });
+                respuesta.succes = false;
+            }
+            log.audit({ title: 'respuesta getDataSorianaEfx', details: JSON.stringify(respuesta) });
+            return respuesta;
+        }
+
+        function getXmlSoriana(param_obj_SorianaEfx) {
+            var respuesta = {
+                succes: false,
+                data: '',
+                xmlns: '',
+            };
+            try {
+
+                respuesta.xmlns = ' xsi:schemaLocation="http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv33.xsd" ';
+                respuesta.xmlns += ' xmlns:xs="http://www.w3.org/2001/XMLSchema" ';
+                respuesta.xmlns += ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ';
+
+                var xmlSorianaEfx = '';
+                xmlSorianaEfx += '<cfdi:Addenda>';
+                xmlSorianaEfx += '    <DSCargaRemisionProv xmlns="http://tempuri.org/DSCargaRemisionProv.xsd">';
+                xmlSorianaEfx += '        <Remision RowOrder="0" Id="' + param_obj_SorianaEfx.id_remision + '">';
+                xmlSorianaEfx += '            <Proveedor>' + param_obj_SorianaEfx.id_proveedor + '</Proveedor>';
+                xmlSorianaEfx += '            <Remision>' + param_obj_SorianaEfx.id_remision + '</Remision>';
+                xmlSorianaEfx += '            <Consecutivo>0</Consecutivo>';
+                xmlSorianaEfx += '            <FechaRemision>' + param_obj_SorianaEfx.fecha_remision + '</FechaRemision>';
+                if (param_obj_SorianaEfx.determinante_envio) {
+                    xmlSorianaEfx += '            <Tienda>' + param_obj_SorianaEfx.determinante_envio + '</Tienda>';
+                } else {
+                    xmlSorianaEfx += '            <Tienda>' + param_obj_SorianaEfx.determinante + '</Tienda>';
+                }
+                xmlSorianaEfx += '            <TipoMoneda>1</TipoMoneda>';
+                xmlSorianaEfx += '            <TipoBulto>2</TipoBulto>';
+                if (param_obj_SorianaEfx.entrega_mercancia_envio) {
+                    xmlSorianaEfx += '            <EntregaMercancia>' + param_obj_SorianaEfx.entrega_mercancia_envio + '</EntregaMercancia>';
+                } else {
+                    xmlSorianaEfx += '            <EntregaMercancia>' + param_obj_SorianaEfx.entrega_mercancia + '</EntregaMercancia>';
+                }
+                xmlSorianaEfx += '            <CumpleReqFiscales>true</CumpleReqFiscales>';
+                xmlSorianaEfx += '            <CantidadBultos>' + param_obj_SorianaEfx.num_cajas + '</CantidadBultos>';
+                xmlSorianaEfx += '            <Subtotal>' + param_obj_SorianaEfx.subtotal + '</Subtotal>';
+                xmlSorianaEfx += '            <Descuentos>' + param_obj_SorianaEfx.descuentototal + '</Descuentos>';
+                xmlSorianaEfx += '            <IEPS>' + param_obj_SorianaEfx.ieps + '</IEPS>';
+                xmlSorianaEfx += '            <IVA>' + param_obj_SorianaEfx.iva + '</IVA>';
+                xmlSorianaEfx += '            <OtrosImpuestos>0</OtrosImpuestos>';
+                xmlSorianaEfx += '            <Total>' + param_obj_SorianaEfx.total + '</Total>';
+                xmlSorianaEfx += '            <CantidadPedidos>1</CantidadPedidos>';
+                xmlSorianaEfx += '            <FechaEntregaMercancia>' + param_obj_SorianaEfx.fecha_cita + '</FechaEntregaMercancia>';
+                if (param_obj_SorianaEfx.contra_recibo) {
+                    xmlSorianaEfx += '            <FolioNotaEntrada>' + param_obj_SorianaEfx.contra_recibo + '</FolioNotaEntrada>';
+                } else {
+                    xmlSorianaEfx += '            <Cita>' + param_obj_SorianaEfx.numero_cita + '</Cita>';
+                }
+                xmlSorianaEfx += '        </Remision>';
+
+                xmlSorianaEfx += '        <Pedidos RowOrder="1" Id="' + param_obj_SorianaEfx.orden_compra + '">';
+                xmlSorianaEfx += '            <Proveedor>' + param_obj_SorianaEfx.id_proveedor + '</Proveedor>';
+                xmlSorianaEfx += '            <Remision>' + param_obj_SorianaEfx.id_remision + '</Remision>';
+                xmlSorianaEfx += '            <FolioPedido>' + param_obj_SorianaEfx.orden_compra + '</FolioPedido>';
+                if (param_obj_SorianaEfx.determinante_envio) {
+                    xmlSorianaEfx += '            <Tienda>' + param_obj_SorianaEfx.determinante_envio + '</Tienda>';
+                } else {
+                    xmlSorianaEfx += '            <Tienda>' + param_obj_SorianaEfx.determinante + '</Tienda>';
+                }
+                xmlSorianaEfx += '            <CantidadArticulos>' + param_obj_SorianaEfx.item.length + '</CantidadArticulos>';
+                if (param_obj_SorianaEfx.contra_recibo) {
+                    xmlSorianaEfx += '            <PedidoEmitidoProveedor>SI</PedidoEmitidoProveedor>';
+                }
+                xmlSorianaEfx += '        </Pedidos>';
+                var itemNum = 0;
+                for (var lineitem in param_obj_SorianaEfx.item) {
+                    itemNum++;
+
+                    xmlSorianaEfx += '        <Articulos RowOrder="' + itemNum + '" Id="' + param_obj_SorianaEfx.id_remision + '">';
+                    xmlSorianaEfx += '            <Proveedor>' + param_obj_SorianaEfx.id_proveedor + '</Proveedor>';
+                    xmlSorianaEfx += '            <Remision>' + param_obj_SorianaEfx.id_remision + '</Remision>';
+                    xmlSorianaEfx += '            <FolioPedido>' + param_obj_SorianaEfx.folio_pedido + '</FolioPedido>';
+                    if (param_obj_SorianaEfx.determinante_envio) {
+                        xmlSorianaEfx += '            <Tienda>' + param_obj_SorianaEfx.determinante_envio + '</Tienda>';
+                    } else {
+                        xmlSorianaEfx += '            <Tienda>' + param_obj_SorianaEfx.determinante + '</Tienda>';
+                    }
+                    xmlSorianaEfx += '            <Codigo>' + param_obj_SorianaEfx.item[lineitem].sku + '</Codigo>';
+                    xmlSorianaEfx += '            <CantidadUnidadCompra>' + param_obj_SorianaEfx.item[lineitem].quantity + '</CantidadUnidadCompra>';
+                    xmlSorianaEfx += '            <CostoNetoUnidadCompra>' + (param_obj_SorianaEfx.item[lineitem].rate).toFixed(2) + '</CostoNetoUnidadCompra>';
+
+                    xmlSorianaEfx += '            <PorcentajeIEPS>' + param_obj_SorianaEfx.item[lineitem].ieps_rate + '</PorcentajeIEPS>';
+                    xmlSorianaEfx += '            <PorcentajeIVA>' + param_obj_SorianaEfx.item[lineitem].iva_rate + '</PorcentajeIVA>';
+                    xmlSorianaEfx += '        </Articulos>';
+                }
+
+                xmlSorianaEfx += '        </DSCargaRemisionProv>';
+                xmlSorianaEfx += '    </cfdi:Addenda>';
+
+                respuesta.data = xmlSorianaEfx;
+                respuesta.succes = true;
+
+            } catch (error) {
+                log.error({ title: 'error getXmlSoriana2', details: JSON.stringify(error) });
+                respuesta.succes = false;
+            }
+            log.audit({ title: 'respuesta getXmlSoriana2', details: JSON.stringify(respuesta) });
+            return respuesta;
+        }
         function getxmlBioPapel(param_obj_BioPapel) {
             var respuesta = {
                 succes: false,
@@ -2101,10 +2480,10 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 xmlBioPapel += '   <cfdi:Addenda>';
                 xmlBioPapel += '       <BioPappel';
                 xmlBioPapel += '           Version="1.0"';
-                xmlBioPapel += '           IdProveedor="'+param_obj_BioPapel.custentity_efx_fe_add_bp_idprov+'">';
-                xmlBioPapel += '           <OrdenCompra NumeroOC="'+param_obj_BioPapel.otherrefnum+'">';
+                xmlBioPapel += '           IdProveedor="' + param_obj_BioPapel.custentity_efx_fe_add_bp_idprov + '">';
+                xmlBioPapel += '           <OrdenCompra NumeroOC="' + param_obj_BioPapel.otherrefnum + '">';
                 xmlBioPapel += '               <Recepciones>';
-                xmlBioPapel += '               <Recepcion IdRecepcion="'+param_obj_BioPapel.custbody_efx_fe_add_bp_idrec+'" NoRemision="'+param_obj_BioPapel.custbody_efx_fe_add_bp_nrem+'">';
+                xmlBioPapel += '               <Recepcion IdRecepcion="' + param_obj_BioPapel.custbody_efx_fe_add_bp_idrec + '" NoRemision="' + param_obj_BioPapel.custbody_efx_fe_add_bp_nrem + '">';
                 for (var lineitem in param_obj_BioPapel.item) {
                     xmlBioPapel += '                   <Concepto ValorUnitario="' + param_obj_BioPapel.item[lineitem].rate.toFixed(2) + '" NoIdentificacion="' + param_obj_BioPapel.item[lineitem].sku + '" PosOC="' + param_obj_BioPapel.item[lineitem].custcol_efx_fe_add_bp_poc + '" Importe="' + param_obj_BioPapel.item[lineitem].amount.toFixed(2) + '" Cantidad="' + param_obj_BioPapel.item[lineitem].quantity + '" Descripcion="' + param_obj_BioPapel.item[lineitem].description + '"/>';
                 }
@@ -2121,10 +2500,10 @@ define(['N/log', 'N/file', 'N/record', 'N/render', 'N/search', 'N/runtime', '../
                 respuesta.succes = true;
     
             } catch (error) {
-                log.error({title: 'error getXmlChedrahui', details: JSON.stringify(error)});
+                log.error({ title: 'error getXmlChedrahui', details: JSON.stringify(error) });
                 respuesta.succes = false;
             }
-            log.audit({title: 'respuesta getXmlChedrahui', details: JSON.stringify(respuesta)});
+            log.audit({ title: 'respuesta getXmlChedrahui', details: JSON.stringify(respuesta) });
             return respuesta;
         }
         function getDataHeb(param_id, param_type) {
