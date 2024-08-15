@@ -180,10 +180,12 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
         log.debug({ title: 'receFactoraje', details: receFactoraje })
         if (Object.keys(basePmt).length) {
           // MOD: Se cambia la forma de obtener la serie y el folio porque se comia un caracter numerico
+          if (runtime.accountId.includes('5907646') == false) {
           let serieT = basePmt[PAYMENT.FIELDS.FOLIO].value.match(/[a-zA-Z]+/g);
           dataGenerate[BASE.Serie] = serieT ? (serieT).toString() : '';
           let folioT = basePmt[PAYMENT.FIELDS.FOLIO].value.match(/\d+/g);
           dataGenerate[BASE.Folio] = folioT ? (folioT).toString() : '';
+          }
           // dataGenerate[BASE.Serie] = basePmt[PAYMENT.FIELDS.FOLIO].value.slice(0, 3)
           // dataGenerate[BASE.Folio] = basePmt[PAYMENT.FIELDS.FOLIO].value.slice(4, basePmt[PAYMENT.FIELDS.FOLIO].value.length)
           if (dataGenerate[BASE.Folio] === '' && dataGenerate[BASE.Serie] !== '') {
@@ -191,6 +193,11 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
           }
           if (dataGenerate[BASE.Serie] === '' && dataGenerate[BASE.Folio] !== '') {
             dataGenerate[BASE.Serie] = dataGenerate[BASE.Folio]
+          }
+          let hadHyphen = basePmt[PAYMENT.FIELDS.FOLIO].value.indexOf('-');
+          if (hadHyphen != -1 && runtime.accountId.includes('5907646') == true) {
+            dataGenerate[BASE.Serie] = basePmt[PAYMENT.FIELDS.FOLIO].value.split('-')[0];
+            dataGenerate[BASE.Folio] = basePmt[PAYMENT.FIELDS.FOLIO].value.split('-')[1];
           }
           // Do not use the date of transaction, use the current date
           const currentDate = new Date()
@@ -336,7 +343,9 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
                 log.debug({ title: 'Error in selec tax', details: 'Error in selec tax' })
               }
             }
-            if (Object.keys(tax_json.rates_exento).length) {
+            // (Object.keys(tax_json.rates_exento).length !== 0) || (Object.keys(tax_json.rates_ieps_data).length !== 0) && (Object.keys(tax_json.rates_iva).length === 0)
+            // if (Object.keys(tax_json.rates_exento).length) {
+            if ((Object.keys(tax_json.rates_exento).length !== 0) || (Object.keys(tax_json.rates_ieps_data).length !== 0) && (Object.keys(tax_json.rates_iva).length === 0)) {
               pagos[COMPLEMENTO.Pago20][PAGOS.Totales] = {
                 [PAGOS.MontoTotalPagos]: 0
               }
@@ -349,20 +358,29 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
                 pagos[COMPLEMENTO.Pago20][PAGOS.Totales][value.totalTI] = 0
               })
               pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS.MontoTotalPagos] = 0
-              // pagos[COMPLEMENTO.Pago20][PAGOS.Totales] = {
-              //   [PAGOS[totalTB]]: 0,
-              //   [PAGOS[totalTI]]: 0,
-              //   [PAGOS.MontoTotalPagos]: 0
-              // }
             }
-            // delete pagos[COMPLEMENTO.Pago20][PAGOS.Totales][PAGOS[totalTB]]
           })
+          log.audit({title:'pagos[COMPLEMENTO.Pago20][PAGOS.Totales]',details:pagos[COMPLEMENTO.Pago20][PAGOS.Totales]});
           log.debug({ title: 'auxTotal', details: auxTotal })
           pagos[COMPLEMENTO.Pago20][PAGOS.Pagos] = []
           log.debug({ title: 'recordId', details: recordId })
           const pago = {}
           let arrPagos = []
           pago[PAGO.FechaPago] = basePmt[PAYMENT.FIELDS.DATE].value
+          if (runtime.accountId.includes('6212323')) {
+            const objSearchDate = search.lookupFields({
+              type: search.Type.CUSTOMER_PAYMENT,
+              id: recordId,
+              columns: ['custbody_efx_fe_fechadepago']
+            })
+            let dateComver = JSON.stringify(objSearchDate)
+            let forDate = JSON.parse(dateComver)
+            forDate = forDate.custbody_efx_fe_fechadepago.split('/')
+            let forTime = currentDate.getHours() + ':' + currentDate.getMinutes() + ':' + currentDate.getSeconds()
+            let dateFormVNA = forDate[2] + '-' + forDate[1] + '-' + forDate[0] + 'T' + forTime
+            log.audit({ title: 'ObjSearchDate💀💀💀', details: [typeof dateFormVNA, dateFormVNA] });
+            pago[PAGO.FechaPago] = dateFormVNA
+          }
           // pago[PAGO.FechaPago] = dataGenerate[BASE.Fecha]
           pago[PAGO.FormaDePagoP] = functions.getPaymentMethod(basePmt[PAYMENT.FIELDS.PMT_METHOD].value)
           if (basePmt[PAYMENT.FIELDS.CURRENCY].text === 'Pesos' || basePmt[PAYMENT.FIELDS.CURRENCY].text === 'Peso' || basePmt[PAYMENT.FIELDS.CURRENCY].text === 'MEX' || basePmt[PAYMENT.FIELDS.CURRENCY].text === 'MXN') {
@@ -373,12 +391,12 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
           pago[PAGO.TipoCambioP] = Number(basePmt[PAYMENT.FIELDS.EXCHANGE_RATE].value).toFixed(pago[PAGO.MonedaP] !== 'MXN' ? 4 : 0)
           // pago[PAGO.TipoCambioP] = '1' // Number(basePmt[PAYMENT.FIELDS.EXCHANGE_RATE].value).toFixed(pago[PAGO.MonedaP] !== 'MXN' ? 4 : 0)
           pago[PAGO.Monto] = Number(auxImpT).toFixed(2);
-          let recordPayment=record.load({
+          let recordPayment = record.load({
             type: record.Type.CUSTOMER_PAYMENT,
             id: recordId
           });
-          if(recordPayment.getValue('custbody_mx_cfdi_payment_id')!=null && recordPayment.getValue('custbody_mx_cfdi_payment_id')!='' && recordPayment.getValue('custbody_mx_cfdi_payment_id')!=undefined){
-            pago.NumOperacion=recordPayment.getValue('custbody_mx_cfdi_payment_id');
+          if (recordPayment.getValue('custbody_mx_cfdi_payment_id') != null && recordPayment.getValue('custbody_mx_cfdi_payment_id') != '' && recordPayment.getValue('custbody_mx_cfdi_payment_id') != undefined) {
+            pago.NumOperacion = recordPayment.getValue('custbody_mx_cfdi_payment_id');
           }
           // pago[PAGO.Monto] = receFactoraje[FACTORAJE.CHECK_FAC].value != true ? Number(basePmt[PAYMENT.FIELDS.TOTAL].value).toFixed(2) : Number(auxImpT).toFixed(2)
           //TODO: BORRAR COMENTARIOS
@@ -403,7 +421,8 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
           }
           log.debug({ title: 'caseExento', details: caseExento })
           let arraySumP = {}
-          pago[PAGO.DoctoRelacionado] = []
+          pago[PAGO.DoctoRelacionado] = [];
+          var arr_agrupadoPorImpuestoIEPS = [];
           paymentDetails.forEach(invoice => {
             const tax_json = invoice[INVOICE.FIELDS.TAX_JSON].value
             const objApply = dataApply.find((numRef) => numRef.refnum === invoice[INVOICE.FIELDS.DOC_NUM].value)
@@ -416,6 +435,11 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
             // MOD:folio a veces no alcanza a tener todos los numeros, entonces has que sea igual a la serie
             if (lineInv[DOC_REL.Folio] == '') {
               lineInv[DOC_REL.Folio] = lineInv[DOC_REL.Serie]
+            }
+            let hadHyphen = invoice[INVOICE.FIELDS.DOC_NUM].value.indexOf('-');
+            if (hadHyphen != -1 && runtime.accountId.includes('5907646') == true) {
+              lineInv[DOC_REL.Serie] = invoice[INVOICE.FIELDS.DOC_NUM].value.split('-')[0];
+              lineInv[DOC_REL.Folio] = invoice[INVOICE.FIELDS.DOC_NUM].value.split('-')[1];
             }
             if (invoice[INVOICE.FIELDS.CURRENCY].text === 'Pesos' || invoice[INVOICE.FIELDS.CURRENCY].text === 'MEX') {
               lineInv[DOC_REL.MonedaDR] = 'MXN'
@@ -430,12 +454,13 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
             lineInv[DOC_REL.ImpSaldoInsoluto] = parseFloat(lineInv[DOC_REL.ImpSaldoAnt]) - parseFloat(lineInv[DOC_REL.ImpPagado])
             lineInv[DOC_REL.ImpSaldoInsoluto] = parseFloat(lineInv[DOC_REL.ImpSaldoInsoluto]).toFixed(2)
             if (Object.keys(tax_json).length) {
-              if (Object.keys(tax_json.rates_iva).length) {
+              if (Object.keys(tax_json.rates_iva).length || Object.keys(tax_json.rates_ieps_data).length) {
                 lineInv[DOC_REL.ObjetoImpDR] = '02'
               } else if (Object.keys(tax_json.rates_exento).length) {
                 lineInv[DOC_REL.ObjetoImpDR] = '01'
               }
             }
+            log.audit({title:'lineInv ☠️',details:lineInv});
             if (!Object.keys(tax_json.rates_exento).length) {
               lineInv[DOC_REL.ImpuestosDR] = {}
               lineInv[DOC_REL.ImpuestosDR][DOC_REL.TrasladosDR] = []
@@ -470,10 +495,45 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
                 }
               }
             }
+            log.audit({title: 'lineInv ☠️☠️', details: lineInv})
+            // MOD: verifica si tiene desglose de IEPS en Facturas
+            if (invoice[INVOICE.FIELDS.JSON_GENERADO].value) {
+              // Carga el archivo de JSON Generado
+              let archivoIDJSON_Generado = invoice[INVOICE.FIELDS.JSON_GENERADO].value;
+              let archivoJSON_Generado = file.load({
+                id: archivoIDJSON_Generado
+              });
+              let contenidoJSON_Generado = archivoJSON_Generado.getContents();
+              let jsonGenerado = JSON.parse(contenidoJSON_Generado);
+              // Carga los totales de impuestos si tiene IEPS
+              if (jsonGenerado.Impuestos && jsonGenerado.Impuestos.Traslados) {
+                jsonGenerado.Impuestos.Traslados.forEach(ieps => {
+                  if (ieps.Impuesto == '003') {
+                    let trasladoDR = {};
+                    trasladoDR[DOC_REL.BaseDR] = ieps.Base;
+                    trasladoDR[DOC_REL.ImpuestoDR] = '003';
+                    trasladoDR[DOC_REL.TipoFactorDR] = 'Tasa';
+                    trasladoDR[DOC_REL.TasaOCuotaDR] = ieps.TasaOcuota;
+                    trasladoDR[DOC_REL.ImporteDR] = ieps.Importe;
+                    let trasladoP_IEPS = {};
+                    trasladoP_IEPS[IMPUESTOS.BaseP] = ieps.Base;
+                    trasladoP_IEPS[IMPUESTOS.ImpuestoP] = '003';
+                    trasladoP_IEPS[IMPUESTOS.TipoFactorP] = 'Tasa';
+                    trasladoP_IEPS[IMPUESTOS.TasaOCuotaP] = ieps.TasaOcuota;
+                    trasladoP_IEPS[IMPUESTOS.ImporteP] = ieps.Importe;
+
+                    arr_agrupadoPorImpuestoIEPS.push(trasladoP_IEPS);
+                    lineInv[DOC_REL.ImpuestosDR][DOC_REL.TrasladosDR].push(trasladoDR);
+                    log.audit({ title: 'trasladoDR👽👽👽', details: trasladoDR });
+                  }
+                });
+              }
+            }
             pago[PAGO.DoctoRelacionado].push(lineInv)
           })
+          log.audit({title:'arr_agrupadoPorImpuestoIEPS',details:arr_agrupadoPorImpuestoIEPS});
           log.debug({ title: 'arraySumP', details: arraySumP })
-          if (caseExento !== true) {
+          if (caseExento !== true || arr_agrupadoPorImpuestoIEPS.length > 0) {
             pago[PAGO.ImpuestosP] = {}
             pago[PAGO.ImpuestosP][PAGO.TrasladosP] = []
             const impuestoAux = {}
@@ -514,7 +574,23 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
               p[IMPUESTOS.BaseP] = Number(p[IMPUESTOS.BaseP]).toFixed(6)
               p[IMPUESTOS.TasaOCuotaP] = Number(p[IMPUESTOS.TasaOCuotaP]).toFixed(6)
               p[IMPUESTOS.ImporteP] = Number(p[IMPUESTOS.ImporteP]).toFixed(6)
-            })
+            });
+            // Add the ones from IEPS
+            if (arr_agrupadoPorImpuestoIEPS.length > 0) {
+              arr_agrupadoPorImpuestoIEPS.forEach(ieps => {
+                pago[PAGO.ImpuestosP][PAGO.TrasladosP].push(ieps);
+              });
+              let groupedTrasladosP = {};
+              pago[PAGO.ImpuestosP][PAGO.TrasladosP].forEach(item => {
+                let tasa = item.TasaOCuotaP;
+                if (!groupedTrasladosP[tasa]) {
+                  groupedTrasladosP[tasa] = { ...item, BaseP: 0, ImporteP: 0 };
+                }
+                groupedTrasladosP[tasa].BaseP = (parseFloat(groupedTrasladosP[tasa].BaseP) + parseFloat(item.BaseP)).toFixed(6);
+                groupedTrasladosP[tasa].ImporteP = (parseFloat(groupedTrasladosP[tasa].ImporteP) + parseFloat(item.ImporteP)).toFixed(6);
+              });
+              pago[PAGO.ImpuestosP][PAGO.TrasladosP] = Object.values(groupedTrasladosP);
+            }
           }
           arrPagos.push(pago)
           if (receFactoraje[FACTORAJE.CHECK_FAC].value == true) {
@@ -542,6 +618,11 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
               // MOD: serie y folio descuadrado
               linFact[DOC_REL.Folio] = (invoice[INVOICE.FIELDS.DOC_NUM].value.match(/\d+/g)).toString();
               linFact[DOC_REL.Serie] = ((invoice[INVOICE.FIELDS.DOC_NUM].value.match(/[a-zA-Z]+/g)) != null ? (invoice[INVOICE.FIELDS.DOC_NUM].value.match(/[a-zA-Z]+/g)) : linFact[DOC_REL.Folio]).toString();
+              let hadHyphen = invoice[INVOICE.FIELDS.DOC_NUM].value.indexOf('-');
+              if (hadHyphen != -1 && runtime.accountId.includes('5907646') == true) {
+                linFact[DOC_REL.Serie] = invoice[INVOICE.FIELDS.DOC_NUM].value.split('-')[0];
+                linFact[DOC_REL.Folio] = invoice[INVOICE.FIELDS.DOC_NUM].value.split('-')[1];
+              }
               if (invoice[INVOICE.FIELDS.CURRENCY].text === 'Pesos' || invoice[INVOICE.FIELDS.CURRENCY].text === 'MEX') {
                 linFact[DOC_REL.MonedaDR] = 'MXN'
               } else {
@@ -684,28 +765,28 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
           dataGenerate[BASE.Complemento][COMPLEMENTO.Any].push(pagos)
           
           // MOD: usa alternativa de cambiar el tipo de cambio 01/08/2024
-          log.debug({title:'recordPayment.getValue("custbody_efx_fe_moneda")',details:recordPayment.getValue("custbody_efx_fe_moneda")!=''});
-          if(recordPayment.getValue('custbody_efx_fe_moneda')!=''){
-            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].MonedaP=recordPayment.getText('custbody_efx_fe_moneda');
-            let tipoCambioOriginal=parseFloat(dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP);
-            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP='1';
-            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].Monto=dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Totales.MontoTotalPagos;
-            let sumatoriaBasesDR=0;
-            let copiaEquivalencia=0;
-            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].DoctoRelacionado.forEach((docRel,index)=>{
-              docRel.EquivalenciaDR=1/tipoCambioOriginal;
-              docRel.EquivalenciaDR=parseFloat(docRel.EquivalenciaDR).toFixed(10);
-              copiaEquivalencia=docRel.EquivalenciaDR;
-              docRel.ImpuestosDR.TrasladosDR.forEach((tras,index)=>{
-                sumatoriaBasesDR+=parseFloat(tras.BaseDR);
+          log.debug({ title: 'recordPayment.getValue("custbody_efx_fe_moneda")', details: recordPayment.getValue("custbody_efx_fe_moneda") != '' });
+          if (recordPayment.getValue('custbody_efx_fe_moneda') != '') {
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].MonedaP = recordPayment.getText('custbody_efx_fe_moneda');
+            let tipoCambioOriginal = parseFloat(dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP);
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP = '1';
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].Monto = dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Totales.MontoTotalPagos;
+            let sumatoriaBasesDR = 0;
+            let copiaEquivalencia = 0;
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].DoctoRelacionado.forEach((docRel, index) => {
+              docRel.EquivalenciaDR = 1 / tipoCambioOriginal;
+              docRel.EquivalenciaDR = parseFloat(docRel.EquivalenciaDR).toFixed(10);
+              copiaEquivalencia = docRel.EquivalenciaDR;
+              docRel.ImpuestosDR.TrasladosDR.forEach((tras, index) => {
+                sumatoriaBasesDR += parseFloat(tras.BaseDR);
               });
             });
-            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].ImpuestosP.TrasladosP.forEach((tras,index)=>{
-              log.emergency({title:'sumatoriaBasesDR',details:sumatoriaBasesDR +'-'+copiaEquivalencia});
-              tras.BaseP=sumatoriaBasesDR/copiaEquivalencia;
-              tras.BaseP=parseFloat(tras.BaseP).toFixed(6);
-              tras.ImporteP=parseFloat(tras.ImporteP)/copiaEquivalencia;
-              tras.ImporteP=parseFloat(tras.ImporteP).toFixed(6);
+            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].ImpuestosP.TrasladosP.forEach((tras, index) => {
+              log.emergency({ title: 'sumatoriaBasesDR', details: sumatoriaBasesDR + '-' + copiaEquivalencia });
+              tras.BaseP = sumatoriaBasesDR / copiaEquivalencia;
+              tras.BaseP = parseFloat(tras.BaseP).toFixed(6);
+              tras.ImporteP = parseFloat(tras.ImporteP) / copiaEquivalencia;
+              tras.ImporteP = parseFloat(tras.ImporteP).toFixed(6);
             });
           }
         }
@@ -713,7 +794,7 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
       } catch (error) {
         log.error('Error on generateJSON', error)
       }
-      log.emergency({title:'dataGenerate',details:dataGenerate});
+      log.emergency({ title: 'dataGenerate', details: dataGenerate });
       
       return dataGenerate
     }
@@ -946,6 +1027,7 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
           'AND',
           ['mainline', search.Operator.IS, 'T']
         ]
+        
         const columns = Object.values(INVOICE.FIELDS).map(f => ({ name: f }))
         const objSearch = search.create({
           type: search.Type.TRANSACTION,
