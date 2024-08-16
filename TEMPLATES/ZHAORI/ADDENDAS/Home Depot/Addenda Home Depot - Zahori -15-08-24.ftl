@@ -40,7 +40,8 @@
             <tradeItemIdentification>
                 <gtin>${item.custcol_efx_fe_upc_code}</gtin>
             </tradeItemIdentification>
-            <alternateTradeItemIdentification type = "GLOBAL_TRADE_ITEM_IDENTIFICATION">${item.custcol_efx_fe_upc_code}</alternateTradeItemIdentification>
+            <alternateTradeItemIdentification type = "GLOBAL_TRADE_ITEM_IDENTIFICATION">759123207024</alternateTradeItemIdentification>
+            <#--  <alternateTradeItemIdentification type = "GLOBAL_TRADE_ITEM_IDENTIFICATION">${item.custcol_efx_fe_upc_code}</alternateTradeItemIdentification>  -->
             <tradeItemDescriptionInformation language = "ES">
                 <longText>${item.item}</longText>
             </tradeItemDescriptionInformation>
