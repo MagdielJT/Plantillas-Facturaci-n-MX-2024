@@ -78,7 +78,8 @@ define([], () => {
       AMOUNT_PAID: 'fxamountpaid',
       // AMOUNT_PAID: 'amountpaid',
       AMOUNT_REMAINING: 'amountremaining',
-      FACTORAJE: 'custbody_efx_fe_comision_factor'
+      FACTORAJE: 'custbody_efx_fe_comision_factor',
+      JSON_GENERADO: 'custbody_mx_plus_xml_generado',
     }
   }
   RECORDS.SUBSIDIARY = {
