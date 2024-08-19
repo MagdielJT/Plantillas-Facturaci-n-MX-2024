@@ -1289,13 +1289,17 @@
                       <#if desglose_json?has_content>
                           <#assign "desglose" = desglose_json?eval>
                           <td align="center" colspan="2" style="border-left: 0px; border-color: #e3e3e3;font-size: 4pt; padding-top: 1px;">
-                            ${line_number?string["0"]}
+                            <#if line_number?is_number>
+                                ${line_number?string["0"]}
+                            <#else>
+                                ${line_number?number?string["0"]}
+                            </#if>
                           </td>
                           <#--  <td align="center" colspan="4" style="border-left: 1px; border-color: #e3e3e3;font-size: 6pt; padding-top: 1px;">
                             ${item.item?keep_before(" ")}
                           </td>  -->
                           <td align="center" colspan="4" style="border-left: 1px; border-color: #e3e3e3;font-size: 7pt; padding-top: 1px; padding-left: 0px; padding-right: 0px;">
-                            ${item.quantity?number?string["0"]}
+                            ${item.quantity?string["0"]}
                           </td>
                           <td colspan="18" style="margin: 0; padding: 0;">
                               <table style="width: 100%">
