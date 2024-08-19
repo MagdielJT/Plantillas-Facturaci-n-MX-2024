@@ -45,7 +45,7 @@
             <tradeItemDescriptionInformation language = "ES">
                 <longText>${item.item}</longText>
             </tradeItemDescriptionInformation>
-            <invoicedQuantity unitOfMeasure = "${item.units}">${nsformat_rate(item.quantity)?keep_after("$")}</invoicedQuantity>
+            <invoicedQuantity unitOfMeasure = "${item.units}">${nsformat_rate(item.quantity)?keep_after("$")?replace(",", "")}</invoicedQuantity>
             <grossPrice>
                 <Amount>${item.rate?keep_after("$")}</Amount>
             </grossPrice>
@@ -97,7 +97,7 @@
             </tax>
         </#list>
         <payableAmount>
-            <Amount>${transaction.total?keep_after("$")}</Amount>
+            <Amount>${transaction.total?keep_after("$")?replace(",", "")}</Amount>
         </payableAmount>
     </requestForPayment>
 </cfdi:Addenda>
