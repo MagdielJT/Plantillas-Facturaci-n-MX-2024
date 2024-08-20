@@ -1186,7 +1186,7 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
      * proporcionados. Si se produce algún error durante el proceso, la función detecta el error y lo
      * registra, pero en ese caso no se proporciona ningún valor de retorno específico.
      */
-    const updatePayment = (id, data, jsonGenerado) => {
+    const updatePayment = (id, data, jsonGenerado,stampResponse) => {
       try {
         const objSearch = search.lookupFields({ type: search.Type.CUSTOMER_PAYMENT, id, columns: 'tranid' })
         const { PAYMENT } = RECORDS
@@ -1204,7 +1204,8 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
               [PAYMENT.FIELDS.SAT_STAMP]: data.selloSAT,
               [PAYMENT.FIELDS.SIGNATURE]: data.selloCFDI,
               [PAYMENT.FIELDS.MXPLUS_CERTIFIED]: fileId,
-              [PAYMENT.FIELDS.MXPLUS_JSON]: jsonGenerado
+              [PAYMENT.FIELDS.MXPLUS_JSON]: jsonGenerado,
+              custbody_mxplus_error_log:''
             }
             const recordId = record.submitFields({
               type: record.Type.CUSTOMER_PAYMENT,
@@ -1219,7 +1220,9 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
           }
         } else {
           const values = {
-            [PAYMENT.FIELDS.MXPLUS_JSON]: jsonGenerado
+            [PAYMENT.FIELDS.MXPLUS_JSON]: jsonGenerado,
+            custbody_mxplus_error_log:stampResponse.message+' - '+stampResponse.messageDetail
+
           }
           const recordId = record.submitFields({
             type: record.Type.CUSTOMER_PAYMENT,
