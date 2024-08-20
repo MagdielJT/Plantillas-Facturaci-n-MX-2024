@@ -71,7 +71,7 @@
             </#if>
             <totalLineAmount>
                 <netAmount>
-                    <Amount>${item.amount?keep_after("$")?number?string["0.00"]}</Amount>
+                    <Amount>${(item.amount?keep_after("$"))?replace(",", "")}</Amount>
                 </netAmount>
             </totalLineAmount>
         </lineItem>
