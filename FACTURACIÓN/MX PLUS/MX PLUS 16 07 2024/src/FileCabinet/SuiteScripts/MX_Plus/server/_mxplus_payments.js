@@ -1,7 +1,7 @@
 /**
  * @NApiVersion 2.1
  */
-define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pagos/lib/constants', '../lib/access_pac', '../lib/functions_gbl', '../lib/moment', 'N/runtime'], /**
+define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pagos/lib/constants', '../lib/access_pac', '../lib/functions_gbl', '../lib/moment', 'N/runtime', 'N/xml'], /**
   * @param {file} file
   * @param {https} https
   * @param {log} log
@@ -12,21 +12,52 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
   * @param {access_pac} access_pac
   * @param {functions} functions
   * @param {moment} moment
-  */ (file, https, log, record, query, search, constants, access_pac, functions, moment, runtime) => {
+  */ (file, https, log, record, query, search, constants, access_pac, functions, moment, runtime, xml) => {
     const { JSON_EXAMPLE, RECORDS } = constants
-    /**
-     * La función `generateJSON` crea un objeto JSON basado en información de registro de entrada y
-     * diversa lógica de procesamiento de datos.
-     * @param recordId - Parece que el fragmento de código que proporcionó es una función llamada
-     * "generateJSON" que genera un objeto JSON basado en ciertos parámetros de entrada y datos
-     * recuperados de varias fuentes. La función parece manejar información relacionada con pagos y
-     * facturas para construir la estructura JSON.
-     * @param recordType - Parece que el parámetro `recordType` se usa en su función `generateJSON` para
-     * determinar el tipo de registro que se está procesando. Esta información es crucial para generar
-     * correctamente la estructura de datos JSON según el tipo de registro proporcionado.
-     * @returns La función `generateJSON` devuelve el objeto `dataGenerate` que contiene los datos JSON
-     * generados en función de la entrada `recordId` y `recordType`.
-     */
+    function getXMLJSON(xmlBody) {
+      var xmlObj = xml.Parser.fromString({
+        text: xmlBody
+      });
+      var jsonObj = xmlToJson(xmlObj.documentElement);
+      return jsonObj;
+    }
+    function xmlToJson(xmlNode) {
+      // Create the return object
+      var obj = Object.create(null);
+      if (xmlNode.nodeType == xml.NodeType.ELEMENT_NODE) { // element
+        // do attributes
+        if (xmlNode.hasAttributes()) {
+          obj['_attributes'] = Object.create(null);
+          for (var j in xmlNode.attributes) {
+            if (xmlNode.hasAttribute({ name: j })) {
+              obj['_attributes'][j] = xmlNode.getAttribute({
+                name: j
+              });
+            }
+          }
+        }
+      } else if (xmlNode.nodeType == xml.NodeType.TEXT_NODE) { // text
+        obj = xmlNode.nodeValue;
+      }
+      // do children
+      if (xmlNode.hasChildNodes()) {
+        for (var i = 0, childLen = xmlNode.childNodes.length; i < childLen; i++) {
+          var childItem = xmlNode.childNodes[i];
+          var nodeName = childItem.nodeName;
+          if (nodeName in obj) {
+            if (!Array.isArray(obj[nodeName])) {
+              obj[nodeName] = [
+                obj[nodeName]
+              ];
+            }
+            obj[nodeName].push(xmlToJson(childItem));
+          } else {
+            obj[nodeName] = xmlToJson(childItem);
+          }
+        }
+      }
+      return obj;
+    };
     const getCustomerBasicInformationPMT = idCliente => {
       try {
         let data2Return = {
@@ -148,6 +179,19 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
         log.error({ title: 'Error occurred in fetchSaldosAnteriores_y_Pagados', details: err })
       }
     }
+    /**
+     * La función `generateJSON` crea un objeto JSON basado en información de registro de entrada y
+     * diversa lógica de procesamiento de datos.
+     * @param recordId - Parece que el fragmento de código que proporcionó es una función llamada
+     * "generateJSON" que genera un objeto JSON basado en ciertos parámetros de entrada y datos
+     * recuperados de varias fuentes. La función parece manejar información relacionada con pagos y
+     * facturas para construir la estructura JSON.
+     * @param recordType - Parece que el parámetro `recordType` se usa en su función `generateJSON` para
+     * determinar el tipo de registro que se está procesando. Esta información es crucial para generar
+     * correctamente la estructura de datos JSON según el tipo de registro proporcionado.
+     * @returns La función `generateJSON` devuelve el objeto `dataGenerate` que contiene los datos JSON
+     * generados en función de la entrada `recordId` y `recordType`.
+     */
     const generateJSON = (recordId, recordType) => {
       log.debug({ title: 'recordId 💀', details: recordId })
       let dataGenerate = {}
@@ -768,26 +812,55 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
           log.debug({ title: 'recordPayment.getValue("custbody_efx_fe_moneda")', details: recordPayment.getValue("custbody_efx_fe_moneda") != '' });
           if (recordPayment.getValue('custbody_efx_fe_moneda') != '') {
             dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].MonedaP = recordPayment.getText('custbody_efx_fe_moneda');
-            let tipoCambioOriginal = parseFloat(dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP);
-            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP = '1';
-            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].Monto = dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Totales.MontoTotalPagos;
+            let tipoCambioAux = ''
             let sumatoriaBasesDR = 0;
             let copiaEquivalencia = 0;
-            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].DoctoRelacionado.forEach((docRel, index) => {
-              docRel.EquivalenciaDR = 1 / tipoCambioOriginal;
-              docRel.EquivalenciaDR = parseFloat(docRel.EquivalenciaDR).toFixed(10);
-              copiaEquivalencia = docRel.EquivalenciaDR;
-              docRel.ImpuestosDR.TrasladosDR.forEach((tras, index) => {
-                sumatoriaBasesDR += parseFloat(tras.BaseDR);
+            log.audit({ title: 'TIPO DE CAMBIO', details: ['TDC USA: ' + recordPayment.getText('custbody_efx_fe_moneda'), 'Moneda Prinsipal:' + recordPayment.getText('currency')] });
+            if (recordPayment.getText('custbody_efx_fe_moneda') === 'USD' && recordPayment.getText('currency') === 'MXN') {
+              tipoCambioAux = recordPayment.getValue('custbody_efx_fe_tipo_cambio');
+              // log.audit({title:'Buscando Monto total',details:dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Totales.MontoTotalPagos});
+              dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].Monto = (auxImpT / tipoCambioAux).toFixed(2);
+              log.audit({title:'DATA',details: ['CONTEO:' + contarDecimales(tipoCambioAux) + ' - ' + typeof contarDecimales(tipoCambioAux), 'Digito:' + ultimoDecimal(tipoCambioAux) + ' - ' + typeof ultimoDecimal(tipoCambioAux)]});
+              if ((Number(dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].Monto) * tipoCambioAux) !== dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Totales.MontoTotalPagos) {
+                if ((contarDecimales(tipoCambioAux) < 4) || (ultimoDecimal(tipoCambioAux) === 0)) {
+                  let test = truncMontoxMultiMoneda(auxImpT, tipoCambioAux);
+                  log.audit({title:'test 👻👻',details:test});
+                  dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].Monto = (test.monto).toFixed(2);
+                  tipoCambioAux = (test.tdc).toFixed(6)
+                }
+              }
+              dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP = tipoCambioAux;
+              dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].DoctoRelacionado.forEach((docRel, index) => {
+                docRel.EquivalenciaDR = tipoCambioAux;
+                docRel.EquivalenciaDR = parseFloat(docRel.EquivalenciaDR).toFixed(10);
+              })
+              dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].ImpuestosP.TrasladosP.forEach((tras, index) => {
+                tras.BaseP = tras.BaseP / Number(tipoCambioAux);
+                tras.BaseP = parseFloat(tras.BaseP).toFixed(6);
+                tras.ImporteP = parseFloat(tras.ImporteP) / Number(tipoCambioAux);
+                tras.ImporteP = parseFloat(tras.ImporteP).toFixed(6);
               });
-            });
-            dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].ImpuestosP.TrasladosP.forEach((tras, index) => {
-              log.emergency({ title: 'sumatoriaBasesDR', details: sumatoriaBasesDR + '-' + copiaEquivalencia });
-              tras.BaseP = sumatoriaBasesDR / copiaEquivalencia;
-              tras.BaseP = parseFloat(tras.BaseP).toFixed(6);
-              tras.ImporteP = parseFloat(tras.ImporteP) / copiaEquivalencia;
-              tras.ImporteP = parseFloat(tras.ImporteP).toFixed(6);
-            });
+            } else {
+              dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].Monto = dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Totales.MontoTotalPagos;
+              // tipoCambioAux = parseFloat(dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP);
+              tipoCambioAux = parseFloat(recordPayment.getValue('custbody_efx_fe_tipo_cambio'));
+              dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].TipoCambioP = '1';
+              dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].DoctoRelacionado.forEach((docRel, index) => {
+                docRel.EquivalenciaDR = 1 / tipoCambioAux;
+                docRel.EquivalenciaDR = parseFloat(docRel.EquivalenciaDR).toFixed(10);
+                copiaEquivalencia = docRel.EquivalenciaDR;
+                docRel.ImpuestosDR.TrasladosDR.forEach((tras, index) => {
+                  sumatoriaBasesDR += parseFloat(tras.BaseDR);
+                });
+              });
+              dataGenerate.Complemento.Any[0]['Pago20:Pagos'].Pago[0].ImpuestosP.TrasladosP.forEach((tras, index) => {
+                log.emergency({ title: 'sumatoriaBasesDR', details: sumatoriaBasesDR + '-' + copiaEquivalencia });
+                tras.BaseP = sumatoriaBasesDR / copiaEquivalencia;
+                tras.BaseP = parseFloat(tras.BaseP).toFixed(6);
+                tras.ImporteP = parseFloat(tras.ImporteP) / copiaEquivalencia;
+                tras.ImporteP = parseFloat(tras.ImporteP).toFixed(6);
+              });
+            }
           }
         }
         // log.debug('generateJSON ~ dataGenerate:', dataGenerate)
@@ -797,6 +870,50 @@ define(['N/file', 'N/https', 'N/log', 'N/record', 'N/query', 'N/search', '../Pag
       log.emergency({ title: 'dataGenerate', details: dataGenerate });
       
       return dataGenerate
+    }
+    function contarDecimales(num) {
+      try{
+        // Convertir el número a string
+        let strNum = num.toString();
+        // Buscar el punto decimal
+        let index = strNum.indexOf('.');
+        // Si no hay punto decimal, no tiene decimales
+        if (index === -1) {
+          return 0;
+        } else {
+          // Contar los decimales después del punto
+          return strNum.length - index - 1;
+        }
+      }catch(err){
+        log.error({title:'Error occurred in contarDecimales',details:err});
+      }
+    }
+    function ultimoDecimal(numero) {
+      // Convertimos el número a string
+      let numeroStr = numero.toString();
+      
+      // Verificamos si hay un punto decimal
+      if (numeroStr.includes('.')) {
+          // Obtenemos la parte decimal
+          let decimales = numeroStr.split('.')[1];
+          // Devolvemos el último dígito de la parte decimal
+          return parseInt(decimales.charAt(decimales.length - 1));
+      } else {
+          // Si no hay decimales, devolvemos 0
+          return 0;
+      }
+  }
+    function truncMontoxMultiMoneda(auxImpT, tipoCambioAux) {
+      let newData = {}
+      try {
+        let newTipoCambio = Number(Number(tipoCambioAux).toFixed(6)) + 0.000001
+        let newMontoTDC = auxImpT / newTipoCambio
+        newData['tdc'] = newTipoCambio
+        newData['monto'] = newMontoTDC
+        return newData
+      }catch(err){
+        log.error({title:'Error occurred in truncMontoxMultiMoneda',details:err});
+      }
     }
     function esTercerDecimalMayorOIgualA5(numero) {
       const tercerDecimal = Math.floor(numero * 1000) % 10;
